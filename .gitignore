@@ -1,0 +1,23 @@
+# Maven output
+target
+
+# VIM
+*.swp
+
+# JOE
+*~
+
+# IDEA
+*.iml
+*.ipr
+*.iws
+.idea/
+idea
+
+# Eclipse
+.metadata
+.project
+.settings
+
+# Logging
+log4j.properties
