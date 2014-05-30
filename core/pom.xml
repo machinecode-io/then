@@ -11,5 +11,22 @@
 
     <artifactId>then-core</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.machinecode.then</groupId>
+            <artifactId>then-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.trove4j</groupId>
+            <artifactId>trove4j</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
 </project>

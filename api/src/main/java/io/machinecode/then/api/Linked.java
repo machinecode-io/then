@@ -5,7 +5,7 @@ package io.machinecode.then.api;
  */
 public interface Linked<T> extends Deferred<T>, Synchronized {
 
-    void link(final Linked<?> that);
+    Linked<T> link(final Linked<?> that);
 
-    void onLink(final On<Deferred<?>> listener);
+    Linked<T> onLink(final On<Deferred<?>> on);
 }
