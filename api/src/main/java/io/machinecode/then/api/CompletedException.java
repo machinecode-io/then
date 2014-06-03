@@ -3,9 +3,9 @@ package io.machinecode.then.api;
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public class ResolvedException extends CompletedException {
+public class CompletedException extends RuntimeException {
 
-    public ResolvedException(final String message) {
+    public CompletedException(final String message) {
         super(message);
     }
 }

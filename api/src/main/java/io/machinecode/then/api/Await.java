@@ -7,11 +7,13 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface Synchronized {
+public interface Await {
 
     void await(final Sync sync) throws InterruptedException, ExecutionException;
 
     void await(final long timeout, final TimeUnit unit, final Sync sync) throws InterruptedException, ExecutionException, TimeoutException;
 
     void signal();
+
+    void signalAll();
 }

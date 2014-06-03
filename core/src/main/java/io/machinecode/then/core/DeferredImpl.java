@@ -1,12 +1,13 @@
 package io.machinecode.then.core;
 
+import io.machinecode.then.api.Chain;
 import io.machinecode.then.api.Deferred;
-import io.machinecode.then.api.On;
-import io.machinecode.then.api.Promise;
-import io.machinecode.then.api.Synchronized;
-import io.machinecode.then.api.WhenCancelled;
-import io.machinecode.then.api.WhenRejected;
-import io.machinecode.then.api.WhenResolved;
+import io.machinecode.then.api.OnComplete;
+import io.machinecode.then.api.OnLink;
+import io.machinecode.then.api.Await;
+import io.machinecode.then.api.OnCancel;
+import io.machinecode.then.api.OnReject;
+import io.machinecode.then.api.OnResolve;
 import org.jboss.logging.Logger;
 
 import java.io.Serializable;
@@ -20,21 +21,39 @@ import java.util.concurrent.TimeoutException;
 /**
  * Brent Douglas <brent.n.douglas@gmail.com>
  */
-public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Synchronized {
+public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T> {
 
     private static final Logger log = Logger.getLogger(DeferredImpl.class);
 
-    protected final List<On<Promise<?>>> onCancels = new LinkedList<On<Promise<?>>>();
-    protected final List<WhenCancelled> whenCancelleds = new LinkedList<WhenCancelled>();
+    protected final List<OnCancel> onCancels = new LinkedList<OnCancel>();
+
+    @Override
+    protected boolean setValue(final T value) {
+        if (this.isDone()) {
+            return true;
+        }
+        this.value = value;
+        this.state = RESOLVED;
+        return false;
+    }
+
+    @Override
+    protected boolean setFailure(final Throwable failure) {
+        if (this.isDone()) {
+            return true;
+        }
+        this.failure = failure;
+        this.state = REJECTED;
+        return false;
+    }
 
     @Override
     public void resolve(final T value) {
         log().tracef(getResolveLogMessage());
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
-            this.value = value;
-            if (this.state == PENDING) {
-                this.state = RESOLVED;
+            if (setValue(value)) {
+                return;
             }
         } finally {
             lock.unlock();
@@ -42,7 +61,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
         Throwable exception = null;
         while (!listLock.compareAndSet(false, true)) {}
         try {
-            for (final WhenResolved<T> then : whenResolveds) {
+            for (final OnResolve<T> then : onResolves) {
                 try {
                     then.resolve(this.value);
                 } catch (final Throwable e) {
@@ -53,9 +72,9 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
                     }
                 }
             }
-            for (final On<Promise<?>> listener : onResolves) {
+            for (final OnComplete on : onCompletes) {
                 try {
-                    listener.on(this);
+                    on.complete();
                 } catch (final Throwable e) {
                     if (exception == null) {
                         exception = e;
@@ -68,36 +87,35 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
             listLock.set(false);
         }
         if (exception != null) {
-            reject(exception);
+            reject(exception); //TODO This is not right as state has already been set to RESOLVED
         } else {
-            signal();
+            signalAll();
         }
     }
 
     @Override
     public void reject(final Throwable failure) {
         log().tracef(failure, getRejectLogMessage());
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
-            this.failure = failure;
-            if (this.state != CANCELLED) {
-                this.state = REJECTED;
+            if (setFailure(failure)) {
+                return;
             }
         } finally {
             lock.unlock();
         }
         while (!listLock.compareAndSet(false, true)) {}
         try {
-            for (final WhenRejected<Throwable> then : whenRejecteds) {
+            for (final OnReject<Throwable> then : onRejects) {
                 try {
                     then.reject(this.failure);
                 } catch (final Throwable e) {
                     failure.addSuppressed(e);
                 }
             }
-            for (final On<Promise<?>> listener : onRejects) {
+            for (final OnComplete on : onCompletes) {
                 try {
-                    listener.on(this);
+                    on.complete();
                 } catch (final Throwable e) {
                     failure.addSuppressed(e);
                 }
@@ -105,26 +123,31 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
         } finally {
             listLock.set(false);
         }
-        signal();
+        signalAll();
+    }
+
+    protected boolean checkCancelled(final boolean futureCompatible) {
+        return this.isDone();
     }
 
     @Override
-    public boolean cancel(final boolean mayInterruptIfRunning) {
+    public void cancel() {
+        doCancel(false);
+    }
+
+    protected void doCancel(final boolean futureCompatible) {
         log().tracef(getCancelLogMessage());
-        final CancelListener listener = new CancelListener(mayInterruptIfRunning);
+        final CancelListener listener = new CancelListener();
         RuntimeException exception = null;
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             cancelling(listener);
             if (listener.exception != null) {
-                signal();
+                signalAll();
                 throw listener.exception;
             }
-            if (this.isCancelled()) {
-                return true;
-            }
-            if (this.isResolved() || this.isRejected()) {
-                return false;
+            if (this.checkCancelled(futureCompatible)) {
+                return;
             }
             this.state = CANCELLED;
         } finally {
@@ -132,7 +155,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
         }
         while (!listLock.compareAndSet(false, true)) {}
         try {
-            for (final WhenCancelled then : whenCancelleds) {
+            for (final OnCancel then : onCancels) {
                 try {
                     then.cancel();
                 } catch (final Throwable e) {
@@ -143,9 +166,9 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
                     }
                 }
             }
-            for (final On<Promise<?>> on : onCancels) {
+            for (final OnComplete on : onCompletes) {
                 try {
-                    on.on(this);
+                    on.complete();
                 } catch (final Throwable e) {
                     if (exception == null) {
                         exception = new RuntimeException(Messages.format("THEN-000108.deferred.cancel.exception"), e);
@@ -157,16 +180,15 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
             if (exception != null) {
                 throw exception;
             }
-            return listener.cancelled;
         } finally {
             listLock.set(false);
-            signal();
+            signalAll();
         }
     }
 
     @Override
     public boolean isDone() {
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             switch (this.state) {
                 case RESOLVED:
@@ -182,8 +204,14 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
     }
 
     @Override
+    public boolean cancel(final boolean mayInterruptIfRunning) {
+        doCancel(true);
+        return isCancelled();
+    }
+
+    @Override
     public boolean isCancelled() {
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             return this.state == CANCELLED;
         } finally {
@@ -193,7 +221,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
 
     @Override
     public boolean isRejected() {
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             return this.state == REJECTED;
         } finally {
@@ -203,7 +231,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
 
     @Override
     public boolean isResolved() {
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             return this.state == RESOLVED;
         } finally {
@@ -212,12 +240,12 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
     }
 
     @Override
-    public DeferredImpl<T> onResolve(final On<Promise<?>> on) {
-        if (on == null) {
+    public DeferredImpl<T> onResolve(final OnResolve<T> then) {
+        if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onResolve"));
         }
         boolean run = false;
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             switch (this.state) {
                 case REJECTED:
@@ -229,136 +257,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
                 default:
                     while (!listLock.compareAndSet(false, true)) {}
                     try {
-                        onResolves.add(on);
-                    } finally {
-                        listLock.set(false);
-                    }
-            }
-        } finally {
-            lock.unlock();
-        }
-        if (run) {
-            on.on(this);
-        }
-        return this;
-    }
-
-    @Override
-    public DeferredImpl<T> onReject(final On<Promise<?>> on) {
-        if (on == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onReject"));
-        }
-        boolean run = false;
-        lock.lock();
-        try {
-            switch (this.state) {
-                case RESOLVED:
-                case CANCELLED:
-                    return this;
-                case REJECTED:
-                    run = true;
-                case PENDING:
-                default:
-                    while (!listLock.compareAndSet(false, true)) {}
-                    try {
-                        onRejects.add(on);
-                    } finally {
-                        listLock.set(false);
-                    }
-            }
-        } finally {
-            lock.unlock();
-        }
-        if (run) {
-            on.on(this);
-        }
-        return this;
-    }
-
-    @Override
-    public DeferredImpl<T> onCancel(final On<Promise<?>> on) {
-        if (on == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onCancel"));
-        }
-        boolean run = false;
-        lock.lock();
-        try {
-            switch (this.state) {
-                case RESOLVED:
-                case REJECTED:
-                    return this;
-                case CANCELLED:
-                    run = true;
-                case PENDING:
-                default:
-                    while (!listLock.compareAndSet(false, true)) {}
-                    try {
-                        onCancels.add(on);
-                    } finally {
-                        listLock.set(false);
-                    }
-            }
-        } finally {
-            lock.unlock();
-        }
-        if (run) {
-            on.on(this);
-        }
-        return this;
-    }
-
-    @Override
-    public DeferredImpl<T> always(final On<Promise<?>> on) {
-        if (on == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "always"));
-        }
-        boolean run = false;
-        lock.lock();
-        try {
-            switch (this.state) {
-                case REJECTED:
-                case CANCELLED:
-                case RESOLVED:
-                    run = true;
-                case PENDING:
-                default:
-                    while (!listLock.compareAndSet(false, true)) {}
-                    try {
-                        onResolves.add(on);
-                        onRejects.add(on);
-                        onCancels.add(on);
-                    } finally {
-                        listLock.set(false);
-                    }
-            }
-        } finally {
-            lock.unlock();
-        }
-        if (run) {
-            on.on(this);
-        }
-        return this;
-    }
-
-    @Override
-    public DeferredImpl<T> whenResolved(final WhenResolved<T> then) {
-        if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "whenResolved"));
-        }
-        boolean run = false;
-        lock.lock();
-        try {
-            switch (this.state) {
-                case REJECTED:
-                case CANCELLED:
-                    return this;
-                case RESOLVED:
-                    run = true;
-                case PENDING:
-                default:
-                    while (!listLock.compareAndSet(false, true)) {}
-                    try {
-                        whenResolveds.add(then);
+                        onResolves.add(then);
                     } finally {
                         listLock.set(false);
                     }
@@ -373,12 +272,12 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
     }
 
     @Override
-    public Promise<T> whenRejected(final WhenRejected<Throwable> then) {
+    public DeferredImpl<T> onReject(final OnReject<Throwable> then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "whenRejected"));
+            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onReject"));
         }
         boolean run = false;
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             switch (this.state) {
                 case RESOLVED:
@@ -390,7 +289,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
                 default:
                     while (!listLock.compareAndSet(false, true)) {}
                     try {
-                        whenRejecteds.add(then);
+                        onRejects.add(then);
                     } finally {
                         listLock.set(false);
                     }
@@ -405,12 +304,12 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
     }
 
     @Override
-    public Deferred<T> whenCancelled(final WhenCancelled then) {
+    public DeferredImpl<T> onCancel(final OnCancel then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "whenCancelled"));
+            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onCancel"));
         }
         boolean run = false;
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             switch (this.state) {
                 case RESOLVED:
@@ -422,7 +321,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
                 default:
                     while (!listLock.compareAndSet(false, true)) {}
                     try {
-                        whenCancelleds.add(then);
+                        onCancels.add(then);
                     } finally {
                         listLock.set(false);
                     }
@@ -436,13 +335,44 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
         return this;
     }
 
-    protected void cancelling(final On<Deferred<?>> on) {
+    @Override
+    public DeferredImpl<T> onComplete(final OnComplete then) {
+        if (then == null) {
+            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onComplete"));
+        }
+        boolean run = false;
+        while (!lock.tryLock()) {}
+        try {
+            switch (this.state) {
+                case REJECTED:
+                case CANCELLED:
+                case RESOLVED:
+                    run = true;
+                case PENDING:
+                default:
+                    while (!listLock.compareAndSet(false, true)) {}
+                    try {
+                        onCompletes.add(then);
+                    } finally {
+                        listLock.set(false);
+                    }
+            }
+        } finally {
+            lock.unlock();
+        }
+        if (run) {
+            then.complete();
+        }
+        return this;
+    }
+
+    protected void cancelling(final OnLink then) {
         // For inheritors
     }
 
     @Override
     public T get() throws InterruptedException, ExecutionException, CancellationException {
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             await(lock);
             switch (this.state) {
@@ -472,7 +402,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
 
     @Override
     public T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException, CancellationException {
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
             await(timeout, unit, lock);
             switch (this.state) {
@@ -528,19 +458,13 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T>, Sync
         return log;
     }
 
-    private static final class CancelListener implements On<Deferred<?>>, Serializable {
-        private final boolean mayInterruptIfRunning;
-        private boolean cancelled = true;
+    private static final class CancelListener implements OnLink, Serializable {
         private RuntimeException exception = null;
 
-        private CancelListener(final boolean mayInterruptIfRunning) {
-            this.mayInterruptIfRunning = mayInterruptIfRunning;
-        }
-
         @Override
-        public void on(final Deferred<?> that) {
+        public void link(final Chain<?> that) {
             try {
-                cancelled = that.cancel(mayInterruptIfRunning) && cancelled;
+                that.cancel();
             } catch (final Throwable e) {
                 if (exception == null) {
                     exception = new RuntimeException(Messages.format("THEN-000108.deferred.cancel.exception"), e);

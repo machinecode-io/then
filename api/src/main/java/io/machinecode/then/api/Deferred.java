@@ -5,11 +5,21 @@ import java.util.concurrent.Future;
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface Deferred<T> extends Future<T>, Promise<T> {
+public interface Deferred<T> extends Promise<T>, Future<T>, OnCancel {
 
     int CANCELLED = 3;
 
-    Deferred<T> whenCancelled(final WhenCancelled then);
+    @Override
+    void resolve(final T that) throws ResolvedException, RejectedException, CancelledException;
 
-    Deferred<T> onCancel(final On<Promise<?>> on);
+    @Override
+    void reject(final Throwable that) throws ResolvedException, RejectedException, CancelledException;
+
+    @Override
+    void cancel() throws ResolvedException, RejectedException, CancelledException;
+
+    @Override
+    boolean isCancelled();
+
+    Deferred<T> onCancel(final OnCancel then);
 }

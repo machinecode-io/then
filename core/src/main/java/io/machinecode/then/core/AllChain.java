@@ -1,8 +1,9 @@
 package io.machinecode.then.core;
 
+import io.machinecode.then.api.Chain;
 import io.machinecode.then.api.Deferred;
-import io.machinecode.then.api.Linked;
-import io.machinecode.then.api.On;
+import io.machinecode.then.api.OnComplete;
+import io.machinecode.then.api.OnLink;
 import io.machinecode.then.api.Promise;
 import io.machinecode.then.api.Sync;
 import org.jboss.logging.Logger;
@@ -15,22 +16,22 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 /**
  * Brent Douglas <brent.n.douglas@gmail.com>
  */
-public class AllLinked<T> extends BaseLinked<T> {
+public class AllChain<T> extends BaseChain<T> {
 
-    private static final Logger log = Logger.getLogger(AllLinked.class);
+    private static final Logger log = Logger.getLogger(AllChain.class);
 
-    protected final Linked<?>[] link;
+    protected final Chain<?>[] link;
 
-    public AllLinked(final Linked<?>... link) {
+    public AllChain(final Chain<?>... link) {
         this.link = link;
-        final On<Promise<?>> signal = new On<Promise<?>>() {
+        final OnComplete signal = new OnComplete() {
             @Override
-            public void on(final Promise<?> that) {
-                signal();
+            public void complete() {
+                signalAll();
             }
         };
-        for (final Linked<?> that : link) {
-            that.always(signal);
+        for (final Chain<?> that : link) {
+            that.onComplete(signal);
         }
         resolve(null);
     }
@@ -48,26 +49,21 @@ public class AllLinked<T> extends BaseLinked<T> {
     }
 
     @Override
-    public AllLinked<T> onLink(final On<Deferred<?>> on) {
-        if (on == null) {
+    public AllChain<T> onLink(final OnLink then) {
+        if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onLink"));
         }
         RuntimeException exception = null;
-        lock.lock();
-        try {
-            for (final Deferred<?> that : link) {
-                try {
-                    on.on(that);
-                } catch (final Throwable e) {
-                    if (exception == null) {
-                        exception = new RuntimeException(Messages.format("THEN-000107.deferred.get.exception"), e);
-                    } else {
-                        exception.addSuppressed(e);
-                    }
+        for (final Chain<?> that : link) {
+            try {
+                then.link(that);
+            } catch (final Throwable e) {
+                if (exception == null) {
+                    exception = new RuntimeException(Messages.format("THEN-000107.deferred.get.exception"), e);
+                } else {
+                    exception.addSuppressed(e);
                 }
             }
-        } finally {
-            lock.unlock();
         }
         if (exception != null) {
             log().warnf(exception, Messages.format("THEN-000107.deferred.get.exception"));
@@ -83,7 +79,7 @@ public class AllLinked<T> extends BaseLinked<T> {
         }
         RuntimeException exception = null;
         if (link != null) {
-            for (final Linked<?> that : link) {
+            for (final Chain<?> that : link) {
                 try {
                     that.await(lock);
                 } catch (final Throwable e) {
@@ -110,7 +106,7 @@ public class AllLinked<T> extends BaseLinked<T> {
         final long end = System.currentTimeMillis() + timeoutMillis;
         RuntimeException exception = null;
         if (link != null) {
-            for (final Linked<?> that : link) {
+            for (final Chain<?> that : link) {
                 try {
                     final long nextTimeout = _tryTimeout(end);
                     that.await(nextTimeout, MILLISECONDS, lock);
@@ -132,7 +128,7 @@ public class AllLinked<T> extends BaseLinked<T> {
     }
 
     @Override
-    public AllLinked<T> link(final Linked<?> that) {
+    public AllChain<T> link(final Chain<?> that) {
         // These should always be provided when being constructed
         throw new IllegalStateException(); //TODO Message
     }

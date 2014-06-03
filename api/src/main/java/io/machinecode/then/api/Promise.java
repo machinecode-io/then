@@ -3,15 +3,19 @@ package io.machinecode.then.api;
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface Promise<T> {
+public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, Get<T>, Await {
 
     int PENDING = 0;
     int RESOLVED = 1;
     int REJECTED = 2;
 
-    void resolve(final T that);
+    @Override
+    void resolve(final T that) throws ResolvedException, RejectedException;
 
-    void reject(final Throwable that);
+    @Override
+    void reject(final Throwable that) throws ResolvedException, RejectedException;
+
+    boolean isDone();
 
     boolean isResolved();
 
@@ -19,13 +23,25 @@ public interface Promise<T> {
 
     int getState();
 
-    Promise<T> whenResolved(final WhenResolved<T> then);
+    /**
+     * Triggered on any event after which {@link #getState()} will return {@link #RESOLVED};
+     * @param then Callback to be executed
+     * @return This instance for method chaining.
+     */
+    Promise<T> onResolve(final OnResolve<T> then);
 
-    Promise<T> whenRejected(final WhenRejected<Throwable> then);
+    /**
+     * Triggered on any event after which {@link #getState()} will return {@link #REJECTED};
+     * @param then Callback to be executed
+     * @return This instance for method chaining.
+     */
+    Promise<T> onReject(final OnReject<Throwable> then);
 
-    Promise<T> onResolve(final On<Promise<?>> on);
-
-    Promise<T> onReject(final On<Promise<?>> on);
-
-    Promise<T> always(final On<Promise<?>> on);
+    /**
+     * Triggered on any event after which {@link #isDone()} will return true;
+     * Will be fired in addition to the callback for the specific event.
+     * @param then Callback to be executed
+     * @return This instance for method chaining.
+     */
+    Promise<T> onComplete(final OnComplete then);
 }

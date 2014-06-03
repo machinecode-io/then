@@ -1,8 +1,7 @@
 package io.machinecode.then.core;
 
-import io.machinecode.then.api.Deferred;
-import io.machinecode.then.api.Linked;
-import io.machinecode.then.api.On;
+import io.machinecode.then.api.Chain;
+import io.machinecode.then.api.OnLink;
 import io.machinecode.then.api.Sync;
 
 import java.util.concurrent.TimeUnit;
@@ -11,29 +10,27 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public class Rejected<T> extends BaseLinked<T> {
+public class RejectedChain<T> extends BaseChain<T> {
 
-    public Rejected(final Throwable value) {
+    public RejectedChain(final Throwable value) {
         reject(value);
     }
 
     @Override
-    public Rejected<T> link(final Linked<?> that) {
-        //no op
-        return this;
+    public RejectedChain<T> link(final Chain<?> that) {
+        throw new IllegalStateException(); //TODO Message This is a terminal link
     }
 
     @Override
-    public Rejected<T> onLink(final On<Deferred<?>> listener) {
-        //no op
-        return this;
+    public RejectedChain<T> onLink(final OnLink then) {
+        throw new IllegalStateException(); //TODO Message This is a terminal link
     }
 
     @Override
     public void await(final Sync lock) throws InterruptedException {
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
-            lock.signalAll();
+            lock.signal();
         } finally {
             lock.unlock();
         }
@@ -41,9 +38,9 @@ public class Rejected<T> extends BaseLinked<T> {
 
     @Override
     public void await(final long timeout, final TimeUnit unit, final Sync lock) throws InterruptedException, TimeoutException {
-        lock.lock();
+        while (!lock.tryLock()) {}
         try {
-            lock.signalAll();
+            lock.signal();
         } finally {
             lock.unlock();
         }

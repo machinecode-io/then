@@ -3,7 +3,7 @@ package io.machinecode.then.api;
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface WhenRejected<F extends Throwable> {
+public interface OnLink {
 
-    void reject(final F fail);
+    void link(final Chain<?> chain);
 }

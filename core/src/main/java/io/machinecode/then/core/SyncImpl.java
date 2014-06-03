@@ -8,6 +8,7 @@ import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
@@ -17,6 +18,10 @@ public class SyncImpl implements Sync {
     private final Lock lock;
     private final Condition condition;
     protected final Queue<Sync> waiting = new LinkedList<Sync>();
+
+    public SyncImpl() {
+        this(new ReentrantLock());
+    }
 
     public SyncImpl(final Lock lock) {
         this.lock = lock;
@@ -78,7 +83,7 @@ public class SyncImpl implements Sync {
         condition.signal();
         Sync that;
         while ((that = waiting.poll()) != null) {
-            that.lock();
+            while (!that.tryLock()) {}
             try {
                 that.signal();
             } finally {
@@ -92,7 +97,7 @@ public class SyncImpl implements Sync {
         condition.signalAll();
         Sync that;
         while ((that = waiting.poll()) != null) {
-            that.lock();
+            while (!that.tryLock()) {}
             try {
                 that.signalAll();
             } finally {

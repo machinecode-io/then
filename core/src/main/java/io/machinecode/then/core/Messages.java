@@ -16,9 +16,9 @@ public final class Messages {
     static {
         ResourceBundle bundle;
         try {
-            bundle = ResourceBundle.getBundle("then_messages", Locale.getDefault(), Messages.class.getClassLoader());
+            bundle = ResourceBundle.getBundle("ThenMessages", Locale.getDefault(), Messages.class.getClassLoader());
         } catch (final Exception e) {
-            bundle = ResourceBundle.getBundle("then_messages", Locale.ENGLISH, Messages.class.getClassLoader());
+            bundle = ResourceBundle.getBundle("ThenMessages", Locale.ENGLISH, Messages.class.getClassLoader());
         }
         MESSAGES = bundle;
     }
