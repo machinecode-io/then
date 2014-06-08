@@ -1,9 +1,13 @@
 package io.machinecode.then.api;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, Get<T>, Await {
+public interface Promise<T> extends OnResolve<T>, OnReject<Throwable> {
 
     int PENDING = 0;
     int RESOLVED = 1;
@@ -44,4 +48,8 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, Get<T>, A
      * @return This instance for method chaining.
      */
     Promise<T> onComplete(final OnComplete then);
+
+    T get() throws InterruptedException, ExecutionException;
+
+    T get(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException, ExecutionException;
 }

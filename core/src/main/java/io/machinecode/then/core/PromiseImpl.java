@@ -1,11 +1,10 @@
 package io.machinecode.then.core;
 
+import io.machinecode.then.api.ListenerException;
 import io.machinecode.then.api.OnComplete;
 import io.machinecode.then.api.OnReject;
 import io.machinecode.then.api.OnResolve;
 import io.machinecode.then.api.Promise;
-import io.machinecode.then.api.Sync;
-import io.machinecode.then.api.Await;
 import org.jboss.logging.Logger;
 
 import java.util.LinkedList;
@@ -14,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -25,8 +25,6 @@ public class PromiseImpl<T> implements Promise<T> {
 
     private static final Logger log = Logger.getLogger(PromiseImpl.class);
 
-    protected final Sync lock = new SyncImpl(new ReentrantLock());
-
     protected volatile int state = PENDING;
 
     protected volatile T value;
@@ -36,7 +34,37 @@ public class PromiseImpl<T> implements Promise<T> {
     protected final List<OnReject<Throwable>> onRejects = new LinkedList<OnReject<Throwable>>();
     protected final List<OnComplete> onCompletes = new LinkedList<OnComplete>();
 
-    protected final AtomicBoolean listLock = new AtomicBoolean(false);
+    private final AtomicBoolean guard = new AtomicBoolean(false);
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+
+    protected void _in() {
+        while (!guard.compareAndSet(false, true)) {}
+    }
+
+    protected void _out() {
+        guard.set(false);
+    }
+
+    protected void _lock() {
+        while (!lock.tryLock()) {}
+    }
+
+    protected void _unlock() {
+        lock.unlock();
+    }
+
+    protected void _await() throws InterruptedException {
+        condition.await();
+    }
+
+    protected void _await(final long timeout, final TimeUnit unit) throws InterruptedException {
+        condition.await(timeout, unit);
+    }
+
+    protected void _signalAll() {
+        condition.signalAll();
+    }
 
     protected boolean setValue(final T value) {
         if (this.isDone()) {
@@ -59,16 +87,16 @@ public class PromiseImpl<T> implements Promise<T> {
     @Override
     public void resolve(final T value) {
         log().tracef(getResolveLogMessage());
-        while (!lock.tryLock()) {}
+        _lock();
         try {
             if (setValue(value)) {
                 return;
             }
         } finally {
-            lock.unlock();
+            _unlock();
         }
         Throwable exception = null;
-        while (!listLock.compareAndSet(false, true)) {}
+        _in();
         try {
             for (final OnResolve<T> then : onResolves) {
                 try {
@@ -93,27 +121,31 @@ public class PromiseImpl<T> implements Promise<T> {
                 }
             }
         } finally {
-            listLock.set(false);
+            _out();
+        }
+        _lock();
+        try {
+            _signalAll();
+        } finally {
+            _unlock();
         }
         if (exception != null) {
-            reject(exception);
-        } else {
-            signalAll();
+            throw new ListenerException(exception);
         }
     }
 
     @Override
     public void reject(final Throwable failure) {
         log().tracef(failure, getRejectLogMessage());
-        while (!lock.tryLock()) {}
+        _lock();
         try {
             if (setFailure(failure)) {
                 return;
             }
         } finally {
-            lock.unlock();
+            _unlock();
         }
-        while (!listLock.compareAndSet(false, true)) {}
+        _in();
         try {
             for (final OnReject<Throwable> then : onRejects) {
                 try {
@@ -130,45 +162,35 @@ public class PromiseImpl<T> implements Promise<T> {
                 }
             }
         } finally {
-            listLock.set(false);
+            _out();
         }
-        signalAll();
+        _lock();
+        try {
+            _signalAll();
+        } finally {
+            _unlock();
+        }
     }
 
     @Override
     public boolean isDone() {
-        while (!lock.tryLock()) {}
-        try {
-            switch (this.state) {
-                case REJECTED:
-                case RESOLVED:
-                    return true;
-                default:
-                    return false;
-            }
-        } finally {
-            lock.unlock();
+        switch (this.state) {
+            case REJECTED:
+            case RESOLVED:
+                return true;
+            default:
+                return false;
         }
     }
 
     @Override
     public boolean isResolved() {
-        while (!lock.tryLock()) {}
-        try {
-            return this.state == RESOLVED;
-        } finally {
-            lock.unlock();
-        }
+        return this.state == RESOLVED;
     }
 
     @Override
     public boolean isRejected() {
-        while (!lock.tryLock()) {}
-        try {
-            return this.state == REJECTED;
-        } finally {
-            lock.unlock();
-        }
+        return this.state == REJECTED;
     }
 
     @Override
@@ -182,7 +204,7 @@ public class PromiseImpl<T> implements Promise<T> {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onResolve"));
         }
         boolean run = false;
-        while (!lock.tryLock()) {}
+        _lock();
         try {
             switch (this.state) {
                 case REJECTED:
@@ -191,15 +213,15 @@ public class PromiseImpl<T> implements Promise<T> {
                     run = true;
                 case PENDING:
                 default:
-                    while (!listLock.compareAndSet(false, true)) {}
+                    _in();
                     try {
                         onResolves.add(then);
                     } finally {
-                        listLock.set(false);
+                        _out();
                     }
             }
         } finally {
-            lock.unlock();
+            _unlock();
         }
         if (run) {
             then.resolve(this.value);
@@ -213,7 +235,7 @@ public class PromiseImpl<T> implements Promise<T> {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onReject"));
         }
         boolean run = false;
-        while (!lock.tryLock()) {}
+        _lock();
         try {
             switch (this.state) {
                 case RESOLVED:
@@ -222,15 +244,15 @@ public class PromiseImpl<T> implements Promise<T> {
                     run = true;
                 case PENDING:
                 default:
-                    while (!listLock.compareAndSet(false, true)) {}
+                    _in();
                     try {
                         onRejects.add(then);
                     } finally {
-                        listLock.set(false);
+                        _out();
                     }
             }
         } finally {
-            lock.unlock();
+            _unlock();
         }
         if (run) {
             then.reject(this.failure);
@@ -244,7 +266,7 @@ public class PromiseImpl<T> implements Promise<T> {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onComplete"));
         }
         boolean run = false;
-        while (!lock.tryLock()) {}
+        _lock();
         try {
             switch (this.state) {
                 case REJECTED:
@@ -252,15 +274,15 @@ public class PromiseImpl<T> implements Promise<T> {
                     run = true;
                 case PENDING:
                 default:
-                    while (!listLock.compareAndSet(false, true)) {}
+                    _in();
                     try {
                         onCompletes.add(then);
                     } finally {
-                        listLock.set(false);
+                        _out();
                     }
             }
         } finally {
-            lock.unlock();
+            _unlock();
         }
         if (run) {
             then.complete();
@@ -293,76 +315,11 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
-    public void await(final Sync lock) throws InterruptedException {
-        if (Thread.interrupted()) {
-            throw new InterruptedException(getInterruptedExceptionMessage());
-        }
-        while (!this.isDone()) {
-            while (!this.lock.tryLock()) {}
-            try {
-                this.lock.enlist(lock);
-            } finally {
-                this.lock.unlock();
-            }
-            while (!lock.tryLock()) {}
-            try {
-                lock.await();
-            } finally {
-                lock.unlock();
-            }
-        }
-    }
-
-    @Override
-    public void await(final long timeout, final TimeUnit unit, final Sync lock) throws InterruptedException, TimeoutException {
-        if (Thread.interrupted()) {
-            throw new InterruptedException(getInterruptedExceptionMessage());
-        }
-        final long timeoutMillis = unit.toMillis(timeout);
-        final long end = System.currentTimeMillis() + timeoutMillis;
-            while (!this.isDone()) {
-                final long nextTimeout = _tryTimeout(end);
-                while (!this.lock.tryLock()) {}
-                try {
-                    this.lock.enlist(lock);
-                } finally {
-                    this.lock.unlock();
-                }
-                while (!lock.tryLock()) {}
-                try {
-                    lock.await(nextTimeout, MILLISECONDS);
-                } finally {
-                    lock.unlock();
-                }
-            }
-    }
-
-    @Override
-    public void signal() {
-        while (!lock.tryLock()) {}
-        try {
-            lock.signal();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
-    public void signalAll() {
-        while (!lock.tryLock()) {}
-        try {
-            lock.signalAll();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
     public T get() throws InterruptedException, ExecutionException {
         if (Thread.interrupted()) {
             throw new InterruptedException(getInterruptedExceptionMessage());
         }
-        while (!lock.tryLock()) {}
+        _lock();
         try {
             switch (this.state) {
                 case REJECTED:
@@ -372,7 +329,7 @@ public class PromiseImpl<T> implements Promise<T> {
                 //default/PENDING means this thread was notified before the computation actually completed
             }
             for (;;) {
-                lock.await();
+                condition.await();
                 switch (this.state) {
                     case REJECTED:
                         throw new ExecutionException(getRejectLogMessage(), failure);
@@ -382,7 +339,7 @@ public class PromiseImpl<T> implements Promise<T> {
                 }
             }
         } finally {
-            lock.unlock();
+            _unlock();
         }
     }
 
@@ -391,9 +348,8 @@ public class PromiseImpl<T> implements Promise<T> {
         if (Thread.interrupted()) {
             throw new InterruptedException(getInterruptedExceptionMessage());
         }
-        final long timeoutMillis = unit.toMillis(timeout);
-        final long end = System.currentTimeMillis() + timeoutMillis;
-        while (!lock.tryLock()) {}
+        final long end = System.currentTimeMillis() + unit.toMillis(timeout);
+        _lock();
         try {
             switch (this.state) {
                 case REJECTED:
@@ -403,10 +359,7 @@ public class PromiseImpl<T> implements Promise<T> {
                 //default/PENDING means this thread was notified before the computation actually completed
             }
             for (;;) {
-                long nextTimeout = _tryTimeout(end);
-                if (!lock.await(nextTimeout, MILLISECONDS)) {
-                    throw new TimeoutException(getTimeoutExceptionMessage());
-                }
+                condition.await(_tryTimeout(end), MILLISECONDS);
                 switch (this.state) {
                     case REJECTED:
                         throw new ExecutionException(getRejectLogMessage(), failure);
@@ -416,15 +369,15 @@ public class PromiseImpl<T> implements Promise<T> {
                 }
             }
         } finally {
-            lock.unlock();
+            _unlock();
         }
     }
 
     protected long _tryTimeout(final long end) throws TimeoutException {
-        final long nextTimeout = end - System.currentTimeMillis();
-        if (nextTimeout <= 0) {
+        final long timeout = end - System.currentTimeMillis();
+        if (timeout <= 0) {
             throw new TimeoutException(getTimeoutExceptionMessage());
         }
-        return nextTimeout;
+        return timeout;
     }
 }
