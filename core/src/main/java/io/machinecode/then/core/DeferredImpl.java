@@ -178,7 +178,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T> {
                     then.cancel();
                 } catch (final Throwable e) {
                     if (exception == null) {
-                        exception = new ListenerException(Messages.format("THEN-000108.deferred.cancel.exception"), e);
+                        exception = new ListenerException(Messages.format("THEN-000107.deferred.cancel.exception"), e);
                     } else {
                         exception.addSuppressed(e);
                     }
@@ -189,7 +189,7 @@ public class DeferredImpl<T> extends PromiseImpl<T> implements Deferred<T> {
                     on.complete();
                 } catch (final Throwable e) {
                     if (exception == null) {
-                        exception = new ListenerException(Messages.format("THEN-000108.deferred.cancel.exception"), e);
+                        exception = new ListenerException(Messages.format("THEN-000107.deferred.cancel.exception"), e);
                     } else {
                         exception.addSuppressed(e);
                     }

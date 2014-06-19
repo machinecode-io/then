@@ -19,11 +19,11 @@ public class OnceDeferred<T> extends DeferredImpl<T> {
     protected boolean setValue(final T value) {
         switch (this.state) {
             case REJECTED:
-                throw new RejectedException(Messages.get("THEN-000110.deferred.already.rejected"));
+                throw new RejectedException(Messages.get("THEN-000109.deferred.already.rejected"));
             case RESOLVED:
-                throw new ResolvedException(Messages.get("THEN-000109.deferred.already.resolved"));
+                throw new ResolvedException(Messages.get("THEN-000108.deferred.already.resolved"));
             case CANCELLED:
-                throw new CancelledException(Messages.get("THEN-000111.deferred.already.cancelled"));
+                throw new CancelledException(Messages.get("THEN-000110.deferred.already.cancelled"));
             default:
                 this.value = value;
                 this.state = RESOLVED;
@@ -35,11 +35,11 @@ public class OnceDeferred<T> extends DeferredImpl<T> {
     protected boolean setFailure(final Throwable failure) {
         switch (this.state) {
             case REJECTED:
-                throw new RejectedException(Messages.get("THEN-000110.deferred.already.rejected"));
+                throw new RejectedException(Messages.get("THEN-000109.deferred.already.rejected"));
             case RESOLVED:
-                throw new ResolvedException(Messages.get("THEN-000109.deferred.already.resolved"));
+                throw new ResolvedException(Messages.get("THEN-000108.deferred.already.resolved"));
             case CANCELLED:
-                throw new CancelledException(Messages.get("THEN-000111.deferred.already.cancelled"));
+                throw new CancelledException(Messages.get("THEN-000110.deferred.already.cancelled"));
             default:
                 this.failure = failure;
                 this.state = REJECTED;
@@ -54,11 +54,11 @@ public class OnceDeferred<T> extends DeferredImpl<T> {
         }
         switch (this.state) {
             case REJECTED:
-                throw new RejectedException(Messages.get("THEN-000110.deferred.already.rejected"));
+                throw new RejectedException(Messages.get("THEN-000109.deferred.already.rejected"));
             case RESOLVED:
-                throw new ResolvedException(Messages.get("THEN-000109.deferred.already.resolved"));
+                throw new ResolvedException(Messages.get("THEN-000108.deferred.already.resolved"));
             case CANCELLED:
-                throw new CancelledException(Messages.get("THEN-000111.deferred.already.cancelled"));
+                throw new CancelledException(Messages.get("THEN-000110.deferred.already.cancelled"));
         }
         return false;
     }
