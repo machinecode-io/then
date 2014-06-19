@@ -1,11 +1,9 @@
 package io.machinecode.then.api;
 
-import java.util.concurrent.Future;
-
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface Deferred<T> extends Promise<T>, Future<T>, OnCancel {
+public interface Deferred<T> extends Promise<T>, OnCancel {
 
     int CANCELLED = 3;
 

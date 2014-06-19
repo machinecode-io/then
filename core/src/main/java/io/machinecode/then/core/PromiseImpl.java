@@ -173,6 +173,16 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
+    public boolean cancel(final boolean mayInterruptIfRunning) {
+        return false;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return false;
+    }
+
+    @Override
     public boolean isDone() {
         switch (this.state) {
             case REJECTED:

@@ -1,13 +1,11 @@
 package io.machinecode.then.api;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.Future;
 
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface Promise<T> extends OnResolve<T>, OnReject<Throwable> {
+public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, Future<T> {
 
     int PENDING = 0;
     int RESOLVED = 1;
@@ -18,8 +16,6 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable> {
 
     @Override
     void reject(final Throwable that) throws ResolvedException, RejectedException;
-
-    boolean isDone();
 
     boolean isResolved();
 
@@ -48,8 +44,4 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable> {
      * @return This instance for method chaining.
      */
     Promise<T> onComplete(final OnComplete then);
-
-    T get() throws InterruptedException, ExecutionException;
-
-    T get(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException, ExecutionException;
 }
