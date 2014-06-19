@@ -7,9 +7,9 @@ import java.util.concurrent.Future;
  */
 public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, Future<T> {
 
-    int PENDING = 0;
-    int RESOLVED = 1;
-    int REJECTED = 2;
+    byte PENDING  = 0;
+    byte RESOLVED = 1;
+    byte REJECTED = 2;
 
     @Override
     void resolve(final T that) throws ResolvedException, RejectedException;
@@ -21,7 +21,7 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, Future<T>
 
     boolean isRejected();
 
-    int getState();
+    byte getState();
 
     /**
      * Triggered on any event after which {@link #getState()} will return {@link #RESOLVED};

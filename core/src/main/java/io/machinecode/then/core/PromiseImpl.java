@@ -25,7 +25,7 @@ public class PromiseImpl<T> implements Promise<T> {
 
     private static final Logger log = Logger.getLogger(PromiseImpl.class);
 
-    protected volatile int state = PENDING;
+    protected volatile byte state = PENDING;
 
     protected volatile T value;
     protected volatile Throwable failure;
@@ -204,7 +204,7 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
-    public int getState() {
+    public byte getState() {
         return state;
     }
 

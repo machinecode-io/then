@@ -5,7 +5,7 @@ package io.machinecode.then.api;
  */
 public interface Deferred<T> extends Promise<T>, OnCancel {
 
-    int CANCELLED = 3;
+    byte CANCELLED = 3;
 
     @Override
     void resolve(final T that) throws ResolvedException, RejectedException, CancelledException;
