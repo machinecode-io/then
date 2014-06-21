@@ -1,41 +1,48 @@
 package io.machinecode.then.api;
 
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, Future<T> {
+public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, OnCancel, Future<T> {
 
     byte PENDING  = 0;
     byte RESOLVED = 1;
     byte REJECTED = 2;
+    byte CANCELLED = 3;
 
     @Override
-    void resolve(final T that) throws ResolvedException, RejectedException;
+    void resolve(final T that) throws ResolvedException, RejectedException, CancelledException;
 
     @Override
-    void reject(final Throwable that) throws ResolvedException, RejectedException;
+    void reject(final Throwable that) throws ResolvedException, RejectedException, CancelledException;
 
     boolean isResolved();
 
     boolean isRejected();
 
-    byte getState();
-
     /**
-     * Triggered on any event after which {@link #getState()} will return {@link #RESOLVED};
+     * Triggered on any event after which {@link #isResolved()} ()} will return true.
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
     Promise<T> onResolve(final OnResolve<T> then);
 
     /**
-     * Triggered on any event after which {@link #getState()} will return {@link #REJECTED};
+     * Triggered on any event after which {@link #isRejected()} ()} will return true.
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
     Promise<T> onReject(final OnReject<Throwable> then);
+
+    /**
+     * Triggered on any event after which {@link #isCancelled()} will return true.
+     * @param then Callback to be executed
+     * @return This instance for method chaining.
+     */
+    Promise<T> onCancel(final OnCancel then);
 
     /**
      * Triggered on any event after which {@link #isDone()} will return true;
@@ -44,4 +51,16 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, Future<T>
      * @return This instance for method chaining.
      */
     Promise<T> onComplete(final OnComplete then);
+
+    /**
+     * Triggered when {@link #get(long, TimeUnit)} or {@link #get()} is called.
+     * It will be called after this promise has transitioned into a state
+     * where {@link #isDone()} will return true.
+     *
+     * Each get method will call the corresponding get method on the {@link Future}
+     * in the thread that called either {@link Promise#get()} or {@link Promise#get(long, TimeUnit)}.
+     * @param then Callback to be executed
+     * @return This instance for method chaining.
+     */
+    Promise<T> onGet(final Future<?> then);
 }

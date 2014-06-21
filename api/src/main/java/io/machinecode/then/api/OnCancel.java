@@ -5,5 +5,5 @@ package io.machinecode.then.api;
  */
 public interface OnCancel {
 
-    void cancel();
+    boolean cancel(final boolean mayInterrupt);
 }

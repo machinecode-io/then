@@ -1,5 +1,6 @@
 package io.machinecode.then.core.test;
 
+import io.machinecode.then.api.CancelledException;
 import io.machinecode.then.api.RejectedException;
 import io.machinecode.then.api.ResolvedException;
 import io.machinecode.then.core.OncePromise;
@@ -10,10 +11,11 @@ import org.junit.Test;
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
 public class OncePromiseTest {
+
     //Test OncePromise which should throw various CompletedException if completion is attempted twice
 
     @Test
-    public void promiseAlreadyResolvedTest() throws Exception {
+    public void deferredAlreadyResolvedTest() throws Exception {
         final Object val = new Object();
         try {
             final OncePromise<Object> p = new OncePromise<Object>();
@@ -23,6 +25,7 @@ public class OncePromiseTest {
         } catch (final ResolvedException e) {
             //Expected
         }
+
         try {
             final OncePromise<Object> p = new OncePromise<Object>();
             p.resolve(val);
@@ -31,10 +34,13 @@ public class OncePromiseTest {
         } catch (final ResolvedException e) {
             //Expected
         }
+        final OncePromise<Object> p = new OncePromise<Object>();
+        p.resolve(val);
+        p.cancel(true);
     }
 
     @Test
-    public void promiseAlreadyRejectedTest() throws Exception {
+    public void deferredAlreadyRejectedTest() throws Exception {
         final Throwable val = new Throwable();
         try {
             final OncePromise<Object> p = new OncePromise<Object>();
@@ -52,5 +58,33 @@ public class OncePromiseTest {
         } catch (final RejectedException e) {
             //Expected
         }
+        final OncePromise<Object> p = new OncePromise<Object>();
+        p.reject(val);
+        p.cancel(true);
+    }
+
+    @Test
+    public void deferredAlreadyCancelledTest() throws Exception {
+        final Throwable val = new Throwable();
+        try {
+            final OncePromise<Object> p = new OncePromise<Object>();
+            p.cancel(true);
+            p.reject(val);
+            Assert.fail();
+        } catch (final CancelledException e) {
+            //Expected
+        }
+        try {
+            final OncePromise<Object> p = new OncePromise<Object>();
+            p.cancel(true);
+            p.resolve(new Object());
+            Assert.fail();
+        } catch (final CancelledException e) {
+            //Expected
+        }
+        final OncePromise<Object> p = new OncePromise<Object>();
+        p.cancel(true);
+        p.cancel(true);
+        // Cancel should be allowed to work with Future
     }
 }
