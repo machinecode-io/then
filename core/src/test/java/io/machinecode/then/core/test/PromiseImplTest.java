@@ -1,5 +1,6 @@
 package io.machinecode.then.core.test;
 
+import io.machinecode.then.api.CancelledException;
 import io.machinecode.then.api.OnCancel;
 import io.machinecode.then.api.OnComplete;
 import io.machinecode.then.api.OnReject;
@@ -7,6 +8,9 @@ import io.machinecode.then.api.OnResolve;
 import io.machinecode.then.core.PromiseImpl;
 import junit.framework.Assert;
 import org.junit.Test;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
@@ -198,5 +202,44 @@ public class PromiseImplTest {
             p.cancel(true);
             p.cancel(true);
         }
+    }
+
+    @Test
+    public void promiseGetTest() throws Exception {
+        final PromiseImpl<Object> a = new PromiseImpl<Object>();
+        final PromiseImpl<Object> b = new PromiseImpl<Object>();
+        final PromiseImpl<Object> c = new PromiseImpl<Object>();
+
+        a.onGet(b);
+        b.onGet(c).onCancel(c);
+
+        final boolean[] ret = { false };
+        final CountDownLatch l = new CountDownLatch(1);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    a.get();
+                    ret[0] = true;
+                } catch (final Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    l.countDown();
+                }
+            }
+        }).start();
+
+        a.resolve(new Object());
+        Assert.assertTrue(a.isResolved());
+        Assert.assertFalse(b.isDone());
+        Assert.assertFalse(c.isDone());
+        Assert.assertFalse(ret[0]);
+
+        b.cancel(true);
+        l.await();
+        Assert.assertTrue(a.isResolved());
+        Assert.assertTrue(b.isCancelled());
+        Assert.assertTrue(c.isCancelled());
+        Assert.assertTrue(ret[0]);
     }
 }
