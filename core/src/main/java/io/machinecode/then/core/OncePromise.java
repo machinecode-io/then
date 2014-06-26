@@ -13,7 +13,7 @@ import io.machinecode.then.api.ResolvedException;
  *
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public class OncePromise<T> extends PromiseImpl<T> {
+public class OncePromise<T,F extends Throwable> extends PromiseImpl<T,F> {
 
     @Override
     protected boolean setValue(final T value) {
@@ -32,7 +32,7 @@ public class OncePromise<T> extends PromiseImpl<T> {
     }
 
     @Override
-    protected boolean setFailure(final Throwable failure) {
+    protected boolean setFailure(final F failure) {
         switch (this.state) {
             case REJECTED:
                 throw new RejectedException(Messages.get("THEN-000006.promise.already.rejected"));

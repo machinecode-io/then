@@ -15,7 +15,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,7 +23,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 /**
  * Brent Douglas <brent.n.douglas@gmail.com>
  */
-public class PromiseImpl<T> implements Promise<T> {
+public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
 
     private static final Logger log = Logger.getLogger(PromiseImpl.class);
 
@@ -37,9 +36,8 @@ public class PromiseImpl<T> implements Promise<T> {
     protected volatile byte state = PENDING;
 
     protected volatile T value;
-    protected volatile Throwable failure;
+    protected volatile F failure;
 
-    private final AtomicBoolean _guard = new AtomicBoolean(false);
     private final ReentrantLock _lock = new ReentrantLock();
     private final Condition _condition = _lock.newCondition();
 
@@ -57,30 +55,20 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     protected void _addEvent(final byte event, final Object that) {
-        while (!_guard.compareAndSet(false, true)) {}
-        try {
-            if (_pos >= _events.length) {
-                final Events[] o = new Events[_events.length + 1];
-                System.arraycopy(_events, 0, o, 0, _pos);
-                _events = o;
-            }
-            _events[_pos++] = new Events(event, that);
-        } finally {
-            _guard.set(false);
+        if (_pos >= _events.length) {
+            final Events[] events = new Events[_events.length + 1];
+            System.arraycopy(_events, 0, events, 0, _pos);
+            _events = events;
         }
+        _events[_pos++] = new Events(event, that);
     }
 
     protected <X> List<X> _getEvents(final byte event) {
         final List<X> list = new LinkedList<X>();
-        while (!_guard.compareAndSet(false, true)) {}
-        try {
-            for (int i = 0; i < _pos; ++i) {
-                if (event == _events[i].event) {
-                    list.add((X) _events[i].value);
-                }
+        for (int i = 0; i < _pos; ++i) {
+            if (event == _events[i].event) {
+                list.add((X) _events[i].value);
             }
-        } finally {
-            _guard.set(false);
         }
         return list;
     }
@@ -125,7 +113,7 @@ public class PromiseImpl<T> implements Promise<T> {
         return false;
     }
 
-    protected boolean setFailure(final Throwable failure) {
+    protected boolean setFailure(final F failure) {
         switch (this.state) {
             case RESOLVED:
             case REJECTED:
@@ -151,16 +139,20 @@ public class PromiseImpl<T> implements Promise<T> {
     @Override
     public void resolve(final T value) {
         log().tracef(getResolveLogMessage());
+        final List<OnResolve<T>> onResolves;
+        final List<OnComplete> onCompletes;
         _lock();
         try {
             if (setValue(value)) {
                 return;
             }
+            onResolves = this._getEvents(ON_RESOLVE);
+            onCompletes = this._getEvents(ON_COMPLETE);
         } finally {
             _unlock();
         }
         Throwable exception = null;
-        for (final OnResolve<T> on : this.<OnResolve<T>>_getEvents(ON_RESOLVE)) {
+        for (final OnResolve<T> on : onResolves) {
             try {
                 on.resolve(this.value);
             } catch (final Throwable e) {
@@ -171,7 +163,7 @@ public class PromiseImpl<T> implements Promise<T> {
                 }
             }
         }
-        for (final OnComplete on : this.<OnComplete>_getEvents(ON_COMPLETE)) {
+        for (final OnComplete on : onCompletes) {
             try {
                 on.complete();
             } catch (final Throwable e) {
@@ -194,24 +186,28 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
-    public void reject(final Throwable failure) {
+    public void reject(final F failure) {
         log().tracef(failure, getRejectLogMessage());
+        final List<OnReject<F>> onRejects;
+        final List<OnComplete> onCompletes;
         _lock();
         try {
             if (setFailure(failure)) {
                 return;
             }
+            onRejects = this._getEvents(ON_REJECT);
+            onCompletes = this._getEvents(ON_COMPLETE);
         } finally {
             _unlock();
         }
-        for (final OnReject<Throwable> then : this.<OnReject<Throwable>>_getEvents(ON_REJECT)) {
+        for (final OnReject<F> then : onRejects) {
             try {
                 then.reject(this.failure);
             } catch (final Throwable e) {
                 failure.addSuppressed(e);
             }
         }
-        for (final OnComplete on : this.<OnComplete>_getEvents(ON_COMPLETE)) {
+        for (final OnComplete on : onCompletes) {
             try {
                 on.complete();
             } catch (final Throwable e) {
@@ -230,15 +226,19 @@ public class PromiseImpl<T> implements Promise<T> {
     public boolean cancel(final boolean mayInterruptIfRunning) {
         log().tracef(getCancelLogMessage());
         ListenerException exception = null;
+        final List<OnCancel> onCancels;
+        final List<OnComplete> onCompletes;
         _lock();
         try {
             if (setCancelled()) {
                 return isCancelled();
             }
+            onCancels = this._getEvents(ON_CANCEL);
+            onCompletes = this._getEvents(ON_COMPLETE);
         } finally {
             _unlock();
         }
-        for (final OnCancel then : this.<OnCancel>_getEvents(ON_CANCEL)) {
+        for (final OnCancel then : onCancels) {
             try {
                 then.cancel(mayInterruptIfRunning);
             } catch (final Throwable e) {
@@ -249,7 +249,7 @@ public class PromiseImpl<T> implements Promise<T> {
                 }
             }
         }
-        for (final OnComplete on : this.<OnComplete>_getEvents(ON_COMPLETE)) {
+        for (final OnComplete on : onCompletes) {
             try {
                 on.complete();
             } catch (final Throwable e) {
@@ -300,7 +300,7 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
-    public PromiseImpl<T> onResolve(final OnResolve<T> then) {
+    public PromiseImpl<T,F> onResolve(final OnResolve<T> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onResolve"));
         }
@@ -327,7 +327,7 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
-    public PromiseImpl<T> onReject(final OnReject<Throwable> then) {
+    public PromiseImpl<T,F> onReject(final OnReject<F> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onReject"));
         }
@@ -354,7 +354,7 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
-    public PromiseImpl<T> onCancel(final OnCancel then) {
+    public PromiseImpl<T,F> onCancel(final OnCancel then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onCancel"));
         }
@@ -381,7 +381,7 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
-    public PromiseImpl<T> onComplete(final OnComplete then) {
+    public PromiseImpl<T,F> onComplete(final OnComplete then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onComplete"));
         }
@@ -407,7 +407,7 @@ public class PromiseImpl<T> implements Promise<T> {
     }
 
     @Override
-    public Promise<T> onGet(final Future<?> then) {
+    public Promise<T,F> onGet(final Future<?> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onGet"));
         }
@@ -420,6 +420,7 @@ public class PromiseImpl<T> implements Promise<T> {
         if (Thread.interrupted()) {
             throw new InterruptedException(getInterruptedExceptionMessage());
         }
+        final List<Future<?>> onGets;
         _lock();
         try {
             loop: do {
@@ -432,17 +433,18 @@ public class PromiseImpl<T> implements Promise<T> {
                 _await();
                 _signalAll();
             } while (true);
+            onGets = this._getEvents(ON_GET);
         } finally {
             _unlock();
         }
-        // TODO This read should be fine so long as once state reached terminal state it is never changed
+        // TODO This read should be fine so long as once state reaches a terminal state it is never changed
         switch (this.state) {
             case CANCELLED:
-                throw _onGet(new CancellationException(Messages.format("THEN-000012.promise.cancelled")));
+                throw _onGet(onGets, new CancellationException(Messages.format("THEN-000012.promise.cancelled")));
             case REJECTED:
-                throw _onGet(new ExecutionException(Messages.format("THEN-000011.promise.rejected"), failure));
+                throw _onGet(onGets, new ExecutionException(Messages.format("THEN-000011.promise.rejected"), failure));
             case RESOLVED:
-                _onGet(null);
+                _onGet(onGets, null);
                 return value;
             default:
                 throw new IllegalStateException(); //TODO Message, should never get here
@@ -454,6 +456,7 @@ public class PromiseImpl<T> implements Promise<T> {
         if (Thread.interrupted()) {
             throw new InterruptedException(getInterruptedExceptionMessage());
         }
+        final List<Future<?>> onGets;
         final long end = System.currentTimeMillis() + unit.toMillis(timeout);
         _lock();
         try {
@@ -469,25 +472,26 @@ public class PromiseImpl<T> implements Promise<T> {
                 }
                 _signalAll();
             } while (true);
+            onGets = this._getEvents(ON_GET);
         } finally {
             _unlock();
         }
-        // TODO This read should be fine so long as once state reached terminal state it is never changed
+        // TODO This read should be fine so long as once state reaches a terminal state it is never changed
         switch (this.state) {
             case CANCELLED:
-                throw _onTimedGet(end, new CancellationException(Messages.format("THEN-000012.promise.cancelled")));
+                throw _onTimedGet(onGets, end, new CancellationException(Messages.format("THEN-000012.promise.cancelled")));
             case REJECTED:
-                throw _onTimedGet(end, new ExecutionException(Messages.format("THEN-000011.promise.rejected"), failure));
+                throw _onTimedGet(onGets, end, new ExecutionException(Messages.format("THEN-000011.promise.rejected"), failure));
             case RESOLVED:
-                _onTimedGet(end, null);
+                _onTimedGet(onGets, end, null);
                 return value;
             default:
                 throw new IllegalStateException(); //TODO Message, should never get here
         }
     }
 
-    protected <X extends Exception> X _onGet(X exception) throws ExecutionException, InterruptedException {
-        for (final Future<?> then : this.<Future<?>>_getEvents(ON_GET)) {
+    protected <X extends Exception> X _onGet(final List<Future<?>> onGets, X exception) throws ExecutionException, InterruptedException {
+        for (final Future<?> then : onGets) {
             try {
                 then.get();
             } catch (final Throwable e) {
@@ -500,8 +504,8 @@ public class PromiseImpl<T> implements Promise<T> {
         return exception;
     }
 
-    protected <X extends Exception> X _onTimedGet(final long end, final X exception) throws TimeoutException, ExecutionException, InterruptedException {
-        for (final Future<?> then : this.<Future<?>>_getEvents(ON_GET)) {
+    protected <X extends Exception> X _onTimedGet(final List<Future<?>> onGets, final long end, final X exception) throws TimeoutException, ExecutionException, InterruptedException {
+        for (final Future<?> then : onGets) {
             try {
                 then.get(_tryTimeout(end), MILLISECONDS);
             } catch (final Throwable e) {

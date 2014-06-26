@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
  */
-public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, OnCancel, Future<T> {
+public interface Promise<T, F extends Throwable> extends OnResolve<T>, OnReject<F>, OnCancel, Future<T> {
 
     byte PENDING  = 0;
     byte RESOLVED = 1;
@@ -17,7 +17,7 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, OnCancel,
     void resolve(final T that) throws ResolvedException, RejectedException, CancelledException;
 
     @Override
-    void reject(final Throwable that) throws ResolvedException, RejectedException, CancelledException;
+    void reject(final F that) throws ResolvedException, RejectedException, CancelledException;
 
     boolean isResolved();
 
@@ -28,21 +28,21 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, OnCancel,
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
-    Promise<T> onResolve(final OnResolve<T> then);
+    Promise<T,F> onResolve(final OnResolve<T> then);
 
     /**
      * Triggered on any event after which {@link #isRejected()} ()} will return true.
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
-    Promise<T> onReject(final OnReject<Throwable> then);
+    Promise<T,F> onReject(final OnReject<F> then);
 
     /**
      * Triggered on any event after which {@link #isCancelled()} will return true.
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
-    Promise<T> onCancel(final OnCancel then);
+    Promise<T,F> onCancel(final OnCancel then);
 
     /**
      * Triggered on any event after which {@link #isDone()} will return true;
@@ -50,7 +50,7 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, OnCancel,
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
-    Promise<T> onComplete(final OnComplete then);
+    Promise<T,F> onComplete(final OnComplete then);
 
     /**
      * Triggered when {@link #get(long, TimeUnit)} or {@link #get()} is called.
@@ -62,5 +62,5 @@ public interface Promise<T> extends OnResolve<T>, OnReject<Throwable>, OnCancel,
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
-    Promise<T> onGet(final Future<?> then);
+    Promise<T,F> onGet(final Future<?> then);
 }

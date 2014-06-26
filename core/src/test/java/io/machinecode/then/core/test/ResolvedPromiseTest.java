@@ -16,7 +16,7 @@ public class ResolvedPromiseTest {
 
     @Test
     public void promiseCompleteTest() throws Exception {
-        final Promise<Object> pres = new ResolvedPromise<Object>(null);
+        final Promise<Object,Throwable> pres = new ResolvedPromise<Object,Throwable>(null);
         final Count res = new Count();
         Assert.assertEquals(0, res.count);
         pres.onComplete(res);
@@ -24,7 +24,7 @@ public class ResolvedPromiseTest {
         pres.resolve(null);
         Assert.assertEquals(1, res.count);
 
-        final Promise<Object> prej = new ResolvedPromise<Object>(null);
+        final Promise<Object,Throwable> prej = new ResolvedPromise<Object,Throwable>(null);
         final Count rej = new Count();
         Assert.assertEquals(0, rej.count);
         prej.onComplete(rej);
@@ -36,7 +36,7 @@ public class ResolvedPromiseTest {
     @Test
     public void promiseResolveTest() throws Exception {
         final Object val = new Object();
-        final Promise<Object> p = new ResolvedPromise<Object>(val);
+        final Promise<Object,Throwable> p = new ResolvedPromise<Object,Throwable>(val);
         final boolean[] called = new boolean[] { false, false };
         p.reject(new Throwable()); //Should do nothing, other implementations can throw a ResolvedException
         p.resolve(null); //Should also do nothing
@@ -67,7 +67,7 @@ public class ResolvedPromiseTest {
     @Test
     public void promiseRejectTest() throws Exception {
         final Object val = new Object();
-        final Promise<Object> p = new ResolvedPromise<Object>(val);
+        final Promise<Object,Throwable> p = new ResolvedPromise<Object,Throwable>(val);
         final boolean[] called = new boolean[] { false, false };
         p.reject(new Throwable()); //Should do nothing, other implementations can throw a ResolvedException
         p.resolve(null); //Should also do nothing
@@ -99,12 +99,12 @@ public class ResolvedPromiseTest {
     public void promiseRepeatResolvedTest() throws Exception {
         final Object val = new Object();
         {
-            final Promise<Object> p = new ResolvedPromise<Object>(null);
+            final Promise<Object,Throwable> p = new ResolvedPromise<Object,Throwable>(null);
             p.resolve(val);
             p.resolve(val);
         }
         {
-            final Promise<Object> p = new ResolvedPromise<Object>(null);
+            final Promise<Object,Throwable> p = new ResolvedPromise<Object,Throwable>(null);
             p.resolve(val);
             p.reject(new Throwable());
         }
@@ -114,12 +114,12 @@ public class ResolvedPromiseTest {
     public void promiseRepeatRejectedTest() throws Exception {
         final Throwable val = new Throwable();
         {
-            final Promise<Object> p = new ResolvedPromise<Object>(null);
+            final Promise<Object,Throwable> p = new ResolvedPromise<Object,Throwable>(null);
             p.reject(val);
             p.reject(val);
         }
         {
-            final Promise<Object> p = new ResolvedPromise<Object>(null);
+            final Promise<Object,Throwable> p = new ResolvedPromise<Object,Throwable>(null);
             p.reject(val);
             p.resolve(new Object());
         }

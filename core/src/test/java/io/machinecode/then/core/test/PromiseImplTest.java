@@ -1,6 +1,5 @@
 package io.machinecode.then.core.test;
 
-import io.machinecode.then.api.CancelledException;
 import io.machinecode.then.api.OnCancel;
 import io.machinecode.then.api.OnComplete;
 import io.machinecode.then.api.OnReject;
@@ -10,7 +9,6 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author Brent Douglas <brent.n.douglas@gmail.com>
@@ -19,21 +17,21 @@ public class PromiseImplTest {
 
     @Test
     public void promiseCompleteTest() throws Exception {
-        final PromiseImpl<Object> pres = new PromiseImpl<Object>();
+        final PromiseImpl<Object,Throwable> pres = new PromiseImpl<Object,Throwable>();
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(0, res.count);
         pres.resolve(null);
         Assert.assertEquals(1, res.count);
 
-        final PromiseImpl<Object> prej = new PromiseImpl<Object>();
+        final PromiseImpl<Object,Throwable> prej = new PromiseImpl<Object,Throwable>();
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
         prej.reject(new Throwable());
         Assert.assertEquals(1, rej.count);
 
-        final PromiseImpl<Object> pcan = new PromiseImpl<Object>();
+        final PromiseImpl<Object,Throwable> pcan = new PromiseImpl<Object,Throwable>();
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -44,7 +42,7 @@ public class PromiseImplTest {
     @Test
     public void promiseResolveTest() throws Exception {
         final Object val = new Object();
-        final PromiseImpl<Object> p = new PromiseImpl<Object>();
+        final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
@@ -79,7 +77,7 @@ public class PromiseImplTest {
     @Test
     public void promiseRejectTest() throws Exception {
         final Throwable val = new Throwable();
-        final PromiseImpl<Object> p = new PromiseImpl<Object>();
+        final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
@@ -113,7 +111,7 @@ public class PromiseImplTest {
 
     @Test
     public void promiseCancelTest() throws Exception {
-        final PromiseImpl<Object> p = new PromiseImpl<Object>();
+        final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
@@ -148,17 +146,17 @@ public class PromiseImplTest {
     public void promiseRepeatResolvedTest() throws Exception {
         final Object val = new Object();
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.resolve(val);
             p.resolve(val);
         }
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.resolve(val);
             p.reject(new Throwable());
         }
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.resolve(val);
             p.cancel(true);
         }
@@ -168,17 +166,17 @@ public class PromiseImplTest {
     public void promiseRepeatRejectedTest() throws Exception {
         final Throwable val = new Throwable();
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.reject(val);
             p.reject(val);
         }
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.reject(val);
             p.resolve(new Object());
         }
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.reject(val);
             p.cancel(true);
         }
@@ -188,17 +186,17 @@ public class PromiseImplTest {
     public void promiseRepeatCancelledTest() throws Exception {
         final Throwable val = new Throwable();
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.cancel(true);
             p.reject(val);
         }
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.cancel(true);
             p.resolve(new Object());
         }
         {
-            final PromiseImpl<Object> p = new PromiseImpl<Object>();
+            final PromiseImpl<Object,Throwable> p = new PromiseImpl<Object,Throwable>();
             p.cancel(true);
             p.cancel(true);
         }
@@ -206,9 +204,9 @@ public class PromiseImplTest {
 
     @Test
     public void promiseGetTest() throws Exception {
-        final PromiseImpl<Object> a = new PromiseImpl<Object>();
-        final PromiseImpl<Object> b = new PromiseImpl<Object>();
-        final PromiseImpl<Object> c = new PromiseImpl<Object>();
+        final PromiseImpl<Object,Throwable> a = new PromiseImpl<Object,Throwable>();
+        final PromiseImpl<Object,Throwable> b = new PromiseImpl<Object,Throwable>();
+        final PromiseImpl<Object,Throwable> c = new PromiseImpl<Object,Throwable>();
 
         a.onGet(b);
         b.onGet(c).onCancel(c);
