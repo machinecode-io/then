@@ -74,10 +74,10 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     public PromiseImpl() {
-        this._events = new Events[2];
+        this(2);
     }
 
-    public PromiseImpl(final byte hint) {
+    public PromiseImpl(final int hint) {
         this._events = new Events[hint];
     }
 
