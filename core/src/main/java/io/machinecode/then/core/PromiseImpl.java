@@ -44,14 +44,14 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     private final ReentrantLock _lock = new ReentrantLock();
     private final Condition _condition = _lock.newCondition();
 
-    private volatile Events[] _events;
+    private volatile Event[] _events;
     private volatile int _pos = 0;
 
-    private static class Events {
+    private static class Event {
         final byte event;
         final Object value;
 
-        private Events(final byte event, final Object value) {
+        private Event(final byte event, final Object value) {
             this.event = event;
             this.value = value;
         }
@@ -59,11 +59,11 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
 
     protected void _addEvent(final byte event, final Object that) {
         if (_pos >= _events.length) {
-            final Events[] events = new Events[_events.length + 1];
+            final Event[] events = new Event[_events.length + 1];
             System.arraycopy(_events, 0, events, 0, _pos);
             _events = events;
         }
-        _events[_pos++] = new Events(event, that);
+        _events[_pos++] = new Event(event, that);
     }
 
     protected <X> List<X> _getEvents(final byte event) {
@@ -81,7 +81,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     public PromiseImpl(final int hint) {
-        this._events = new Events[hint];
+        this._events = new Event[hint];
     }
 
     protected void _lock() {
@@ -311,7 +311,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     @Override
     public PromiseImpl<T,F> onResolve(final OnResolve<T> then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onResolve"));
+            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onResolve"));
         }
         boolean run = false;
         _lock();
@@ -338,7 +338,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     @Override
     public PromiseImpl<T,F> onReject(final OnReject<F> then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onReject"));
+            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onReject"));
         }
         boolean run = false;
         _lock();
@@ -365,7 +365,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     @Override
     public PromiseImpl<T,F> onCancel(final OnCancel then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onCancel"));
+            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onCancel"));
         }
         boolean run = false;
         _lock();
@@ -392,7 +392,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     @Override
     public PromiseImpl<T,F> onComplete(final OnComplete then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onComplete"));
+            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onComplete"));
         }
         boolean run = false;
         _lock();
@@ -418,7 +418,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     @Override
     public Promise<T,F> onGet(final Future<?> then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000100.promise.argument.required", "onGet"));
+            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onGet"));
         }
         _addEvent(ON_GET, then);
         return this;
@@ -434,6 +434,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
             throw new InterruptedException(getInterruptedExceptionMessage());
         }
         final List<Future<?>> onGets;
+        final int state;
         _lock();
         try {
             loop: do {
@@ -446,12 +447,12 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 _await();
                 _signalAll();
             } while (true);
+            state = this.state;
             onGets = this._getEvents(ON_GET);
         } finally {
             _unlock();
         }
-        // TODO This read should be fine so long as once state reaches a terminal state it is never changed
-        switch (this.state) {
+        switch (state) {
             case CANCELLED:
                 throw _onGet(onGets, new CancellationException(Messages.format("THEN-000012.promise.cancelled")));
             case REJECTED:
@@ -460,7 +461,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 _onGet(onGets, null);
                 return value;
             default:
-                throw new IllegalStateException(); //TODO Message, should never get here
+                throw new IllegalStateException(Messages.format("THEN-000016.promise.illegal.state", _stateToString(state)));
         }
     }
 
@@ -475,6 +476,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         }
         final List<Future<?>> onGets;
         final long end = System.currentTimeMillis() + unit.toMillis(timeout);
+        final byte state;
         _lock();
         try {
             loop: do {
@@ -489,12 +491,12 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 }
                 _signalAll();
             } while (true);
+            state = this.state;
             onGets = this._getEvents(ON_GET);
         } finally {
             _unlock();
         }
-        // TODO This read should be fine so long as once state reaches a terminal state it is never changed
-        switch (this.state) {
+        switch (state) {
             case CANCELLED:
                 throw _onTimedGet(onGets, end, new CancellationException(Messages.format("THEN-000012.promise.cancelled")));
             case REJECTED:
@@ -503,7 +505,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 _onTimedGet(onGets, end, null);
                 return value;
             default:
-                throw new IllegalStateException(); //TODO Message, should never get here
+                throw new IllegalStateException(Messages.format("THEN-000016.promise.illegal.state", _stateToString(state)));
         }
     }
 
@@ -515,7 +517,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 if (exception != null) {
                     exception.addSuppressed(e);
                 }
-                // TODO
+                log.tracef(e, Messages.get("THEN-000018.promise.get.exception"));
             }
         }
         return exception;
@@ -529,7 +531,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 if (exception != null) {
                     exception.addSuppressed(e);
                 }
-                // TODO
+                log.tracef(e, Messages.get("THEN-000018.promise.get.exception"));
             }
         }
         return exception;
@@ -565,5 +567,15 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
 
     protected Logger log() {
         return log;
+    }
+
+    protected String _stateToString(final int state) {
+        switch (state) {
+            case PENDING: return "PENDING";
+            case RESOLVED: return "RESOLVED";
+            case REJECTED: return "REJECTED";
+            case CANCELLED: return "CANCELLED";
+            default: return "UNKNOWN";
+        }
     }
 }

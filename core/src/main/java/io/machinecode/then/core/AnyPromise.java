@@ -16,9 +16,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class AnyPromise<T> extends PromiseImpl<T,Throwable> {
 
-    final AtomicInteger count = new AtomicInteger(0);
-
     public AnyPromise(final Collection<Promise<?, ?>> promises) {
+        if (promises.isEmpty()) {
+            reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
+            return;
+        }
+        final AtomicInteger count = new AtomicInteger(0);
         for (final Promise<?,?> promise : promises) {
             promise.onComplete(new OnComplete() {
                 @Override
@@ -27,14 +30,19 @@ public class AnyPromise<T> extends PromiseImpl<T,Throwable> {
                     if (state == RESOLVED) {
                         resolve(null);
                     } else if (n == promises.size()) {
-                        reject(new CompletionException("No promises were resolved.")); //TODO Message
+                        reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
                     }
                 }
             });
         }
     }
 
-    public AnyPromise(final Promise<?, ?>[] promises) {
+    public AnyPromise(final Promise<?, ?>... promises) {
+        if (promises.length == 0) {
+            reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
+            return;
+        }
+        final AtomicInteger count = new AtomicInteger(0);
         for (final Promise<?,?> promise : promises) {
             promise.onComplete(new OnComplete() {
                 @Override
@@ -43,7 +51,7 @@ public class AnyPromise<T> extends PromiseImpl<T,Throwable> {
                     if (state == RESOLVED) {
                         resolve(null);
                     } else if (n == promises.length) {
-                        reject(new CompletionException("No promises were resolved.")); //TODO Message
+                        reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
                     }
                 }
             });

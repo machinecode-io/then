@@ -17,6 +17,10 @@ public class AllPromise<T,F extends Throwable> extends PromiseImpl<T,F> {
     final AtomicInteger count = new AtomicInteger(0);
 
     public AllPromise(final Collection<Promise<?, ?>> promises) {
+        if (promises.isEmpty()) {
+            resolve(null);
+            return;
+        }
         for (final Promise<?,?> promise : promises) {
             promise.onComplete(new OnComplete() {
                 @Override
@@ -29,7 +33,11 @@ public class AllPromise<T,F extends Throwable> extends PromiseImpl<T,F> {
         }
     }
 
-    public AllPromise(final Promise<?, ?>[] promises) {
+    public AllPromise(final Promise<?, ?>... promises) {
+        if (promises.length == 0) {
+            resolve(null);
+            return;
+        }
         for (final Promise<?,?> promise : promises) {
             promise.onComplete(new OnComplete() {
                 @Override

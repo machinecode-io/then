@@ -26,14 +26,26 @@ public final class Messages {
         MESSAGES = bundle;
     }
 
+    /**
+     * @param key The message id.
+     * @return A localised message prepended with the message id.
+     */
     public static String get(final String key) {
-        return key.split("\\.")[0] + ": " + MESSAGES.getString(key);
+        return key.split("\\.")[0] + ": " + raw(key);
     }
 
+    /**
+     * @param key The message id.
+     * @return A formatted localised message prepended with the message id and format it.
+     */
     public static String format(final String key, final Object... args) {
         return new Formatter().format(get(key), args).toString();
     }
 
+    /**
+     * @param key The message id.
+     * @return A localised message as found in the bundle.
+     */
     public static String raw(final String key) {
         return MESSAGES.getString(key);
     }
