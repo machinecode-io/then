@@ -46,7 +46,7 @@ public class PromiseImplTest {
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
-            public void complete() {
+            public void complete(final int state) {
                 called[0] = true;
                 if (!p.isResolved()) {
                     Assert.fail("Expected RESOLVED found REJECTED");
@@ -81,7 +81,7 @@ public class PromiseImplTest {
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
-            public void complete() {
+            public void complete(final int state) {
                 called[0] = true;
                 if (!p.isRejected()) {
                     Assert.fail("Expected RESOLVED found REJECTED");
@@ -115,7 +115,7 @@ public class PromiseImplTest {
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
-            public void complete() {
+            public void complete(final int state) {
                 called[0] = true;
                 if (!p.isCancelled()) {
                     Assert.fail("Expected CANCELLED found RESOLVED or REJECTED");

@@ -21,7 +21,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
+ * A thread safe promise implementation that silently drops multiple calls to terminal methods.
+ *
  * Brent Douglas <brent.n.douglas@gmail.com>
+ * @since 1.0
  */
 public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
 
@@ -137,10 +140,11 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
-    public void resolve(final T value) {
+    public void resolve(final T value) throws ListenerException {
         log().tracef(getResolveLogMessage());
         final List<OnResolve<T>> onResolves;
         final List<OnComplete> onCompletes;
+        final int state;
         _lock();
         try {
             if (setValue(value)) {
@@ -148,16 +152,17 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
             }
             onResolves = this._getEvents(ON_RESOLVE);
             onCompletes = this._getEvents(ON_COMPLETE);
+            state = this.state;
         } finally {
             _unlock();
         }
-        Throwable exception = null;
+        ListenerException exception = null;
         for (final OnResolve<T> on : onResolves) {
             try {
                 on.resolve(this.value);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = e;
+                    exception = new ListenerException(Messages.format("THEN-000014.promise.on.resolve.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -165,10 +170,10 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         }
         for (final OnComplete on : onCompletes) {
             try {
-                on.complete();
+                on.complete(state);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = e;
+                    exception = new ListenerException(Messages.format("THEN-000015.promise.on.complete.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -181,7 +186,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
             _unlock();
         }
         if (exception != null) {
-            throw new ListenerException(exception); //TODO Should this be changed to rejected?
+            throw exception;
         }
     }
 
@@ -190,6 +195,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         log().tracef(failure, getRejectLogMessage());
         final List<OnReject<F>> onRejects;
         final List<OnComplete> onCompletes;
+        final int state;
         _lock();
         try {
             if (setFailure(failure)) {
@@ -197,6 +203,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
             }
             onRejects = this._getEvents(ON_REJECT);
             onCompletes = this._getEvents(ON_COMPLETE);
+            state = this.state;
         } finally {
             _unlock();
         }
@@ -209,7 +216,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         }
         for (final OnComplete on : onCompletes) {
             try {
-                on.complete();
+                on.complete(state);
             } catch (final Throwable e) {
                 failure.addSuppressed(e);
             }
@@ -223,11 +230,12 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
-    public boolean cancel(final boolean mayInterruptIfRunning) {
+    public boolean cancel(final boolean mayInterruptIfRunning) throws ListenerException {
         log().tracef(getCancelLogMessage());
         ListenerException exception = null;
         final List<OnCancel> onCancels;
         final List<OnComplete> onCompletes;
+        final int state;
         _lock();
         try {
             if (setCancelled()) {
@@ -235,6 +243,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
             }
             onCancels = this._getEvents(ON_CANCEL);
             onCompletes = this._getEvents(ON_COMPLETE);
+            state = this.state;
         } finally {
             _unlock();
         }
@@ -243,7 +252,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 then.cancel(mayInterruptIfRunning);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000013.promise.cancel.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000013.promise.on.cancel.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -251,10 +260,10 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         }
         for (final OnComplete on : onCompletes) {
             try {
-                on.complete();
+                on.complete(state);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000013.promise.cancel.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000015.promise.on.complete.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -401,7 +410,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
             _unlock();
         }
         if (run) {
-            then.complete();
+            then.complete(this.state);
         }
         return this;
     }
@@ -417,6 +426,10 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
 
     @Override
     public T get() throws InterruptedException, ExecutionException {
+        return _get();
+    }
+
+    protected T _get() throws InterruptedException, ExecutionException {
         if (Thread.interrupted()) {
             throw new InterruptedException(getInterruptedExceptionMessage());
         }
@@ -453,6 +466,10 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
 
     @Override
     public T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return _get(timeout, unit);
+    }
+
+    protected T _get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         if (Thread.interrupted()) {
             throw new InterruptedException(getInterruptedExceptionMessage());
         }

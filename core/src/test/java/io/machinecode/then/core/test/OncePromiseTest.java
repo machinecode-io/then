@@ -12,7 +12,7 @@ import org.junit.Test;
  */
 public class OncePromiseTest {
 
-    //Test OncePromise which should throw various CompletedException if completion is attempted twice
+    //Test OncePromise which should throw various CompletionException if completion is attempted twice
 
     @Test
     public void deferredAlreadyResolvedTest() throws Exception {

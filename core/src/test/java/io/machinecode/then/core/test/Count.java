@@ -9,7 +9,7 @@ class Count implements OnComplete {
     int count = 0;
 
     @Override
-    public void complete() {
+    public void complete(final int state) {
         count++;
     }
 }

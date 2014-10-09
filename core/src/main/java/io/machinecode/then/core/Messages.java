@@ -5,7 +5,10 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
+ * Message bundle for
+ *
  * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @since 1.0
  */
 public final class Messages {
 

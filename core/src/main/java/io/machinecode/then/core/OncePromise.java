@@ -1,17 +1,19 @@
 package io.machinecode.then.core;
 
 import io.machinecode.then.api.CancelledException;
-import io.machinecode.then.api.CompletedException;
 import io.machinecode.then.api.Promise;
 import io.machinecode.then.api.RejectedException;
 import io.machinecode.then.api.ResolvedException;
 
 /**
- * A {@link Promise} implementation that will throw a {@link CompletedException} completion is attempted multiple times.
+ * A {@link Promise} implementation that will throw a {@link io.machinecode.then.api.CompletionException}
+ * if completion is attempted multiple times.
  *
- * {@link #cancel(boolean)} will never throw a completion exception in
+ * {@link #cancel(boolean)} will never throw a completion exception in order to maintain compatibility
+ * with {@link java.util.concurrent.Future#cancel(boolean)}
  *
  * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @since 1.0
  */
 public class OncePromise<T,F extends Throwable> extends PromiseImpl<T,F> {
 
