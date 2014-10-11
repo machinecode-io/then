@@ -39,7 +39,7 @@
     <scm>
         <connection>scm:git:${git.machinecode.io}/then.git</connection>
         <developerConnection>scm:git:${git.machinecode.io}/then.git</developerConnection>
-        <url>${github.machinecode.io}</url>
+        <url>${github.machinecode.io}/then</url>
     </scm>
 
     <properties>
