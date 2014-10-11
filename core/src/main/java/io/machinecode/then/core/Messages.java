@@ -36,6 +36,7 @@ public final class Messages {
 
     /**
      * @param key The message id.
+     * @param args Values to be formatted into the message.
      * @return A formatted localised message prepended with the message id and format it.
      */
     public static String format(final String key, final Object... args) {

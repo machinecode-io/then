@@ -30,14 +30,10 @@ public interface Promise<T, F extends Throwable> extends OnResolve<T>, OnReject<
      * {@link #isResolved()} will also return {@code true}.
      *
      * @param that The result of the computation.
-     * @throws ListenerException May be thrown if a listener throws an exception.
-     *                           It is not required that this be thrown in this instance.
-     * @throws ResolvedException May be thrown by an implementation if resolve has previously called.
-     *                           It is not required that this be thrown in this instance.
-     * @throws RejectedException May be thrown by an implementation if {@link #reject(Throwable)} has previously called.
-     *                           It is not required that this be thrown in this instance.
-     * @throws CancelledException May be thrown by an implementation if {@link #cancel(boolean)} has previously called.
-     *                            It is not required that this be thrown in this instance.
+     * @throws ListenerException MAY be thrown if a listener throws an exception.
+     * @throws ResolvedException MAY be thrown by an implementation if resolve has previously called.
+     * @throws RejectedException MAY be thrown by an implementation if {@link #reject(Throwable)} has previously called.
+     * @throws CancelledException MAY be thrown by an implementation if {@link #cancel(boolean)} has previously called.
      */
     @Override
     void resolve(final T that) throws ListenerException, ResolvedException, RejectedException, CancelledException;
@@ -48,14 +44,10 @@ public interface Promise<T, F extends Throwable> extends OnResolve<T>, OnReject<
      * {@link #isRejected()} will also return {@code true}.
      *
      * @param that The exception that caused the computation to terminate.
-     * @throws ListenerException May be thrown if a listener throws an exception.
-     *                           It is not required that this be thrown in this instance.
-     * @throws ResolvedException May be thrown by an implementation if {@link #resolve(Object)} has previously called.
-     *                           It is not required that this be thrown in this instance.
-     * @throws RejectedException May be thrown by an implementation if reject has previously called.
-     *                           It is not required that this be thrown in this instance.
-     * @throws CancelledException May be thrown by an implementation if {@link #cancel(boolean)} has previously called.
-     *                           It is not required that this be thrown in this instance.
+     * @throws ListenerException MAY be thrown if a listener throws an exception.
+     * @throws ResolvedException MAY be thrown by an implementation if {@link #resolve(Object)} has previously called.
+     * @throws RejectedException MAY be thrown by an implementation if reject has previously called.
+     * @throws CancelledException MAY be thrown by an implementation if {@link #cancel(boolean)} has previously called.
      */
     @Override
     void reject(final F that) throws ListenerException, ResolvedException, RejectedException, CancelledException;
@@ -67,8 +59,7 @@ public interface Promise<T, F extends Throwable> extends OnResolve<T>, OnReject<
      * been called {@link #isDone()} will return {@code true}. If this was the first terminal method to be called
      * {@link #isCancelled()} will also return {@code true}.
      *
-     * @throws ListenerException May be thrown if a listener throws an exception.  It is not required that this be
-     *                           thrown in this instance.
+     * @throws ListenerException MAY be thrown if a listener throws an exception.
      * @param interrupt {@code true} If the computation should be interrupted in the case that it has already commenced.
      * @return {@code true} If the promise was cancelled, {@code false} if it had already reached another terminal state.
      * @see Future#cancel(boolean)

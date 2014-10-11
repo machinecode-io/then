@@ -12,7 +12,7 @@ public interface OnComplete {
 
     /**
      * @param state The final state of the {@link Promise}. It is not guaranteed that this parameter will be
-     *              one of the constants defined in {@link Promise} , inheritors may provide alternate
+     *              one of the constants defined in {@link Promise} , inheritors MAY provide alternate
      *              terminal states.
      *
      * @see Promise#RESOLVED

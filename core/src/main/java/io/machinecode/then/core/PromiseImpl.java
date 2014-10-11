@@ -23,7 +23,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 /**
  * A thread safe promise implementation that silently drops multiple calls to terminal methods.
  *
- * Brent Douglas (brent.n.douglas@gmail.com)
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
 public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
