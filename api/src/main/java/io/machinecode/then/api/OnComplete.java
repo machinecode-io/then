@@ -5,7 +5,7 @@ package io.machinecode.then.api;
  * returns true.
  *
  * @see Promise
- * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
 public interface OnComplete {

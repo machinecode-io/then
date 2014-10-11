@@ -12,7 +12,7 @@ import io.machinecode.then.api.ResolvedException;
  * {@link #cancel(boolean)} will never throw a completion exception in order to maintain compatibility
  * with {@link java.util.concurrent.Future#cancel(boolean)}
  *
- * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
 public class OncePromise<T,F extends Throwable> extends PromiseImpl<T,F> {

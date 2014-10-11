@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A promise that will be resolved when any of the promised passes to it are resolved.
  * If none of them are resolved this promise will be rejected with a {@link CompletionException}.
  *
- * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
 public class AnyPromise<T> extends PromiseImpl<T,Throwable> {

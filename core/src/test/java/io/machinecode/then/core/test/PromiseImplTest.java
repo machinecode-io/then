@@ -11,7 +11,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  */
 public class PromiseImplTest {
 

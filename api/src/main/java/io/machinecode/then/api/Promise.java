@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
  * The javadoc here only considers these three terminal states however this definition does not preclude inheritors
  * from adding further terminal states and associated methods.
  *
- * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
 public interface Promise<T, F extends Throwable> extends OnResolve<T>, OnReject<F>, OnCancel, Future<T> {

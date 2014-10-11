@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  */
 @SuppressWarnings("unchecked")
 public class AllPromiseTest {

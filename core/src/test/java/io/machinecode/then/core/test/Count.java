@@ -3,7 +3,7 @@ package io.machinecode.then.core.test;
 import io.machinecode.then.api.OnComplete;
 
 /**
-* @author Brent Douglas <brent.n.douglas@gmail.com>
+* @author Brent Douglas (brent.n.douglas@gmail.com)
 */
 class Count implements OnComplete {
     int count = 0;

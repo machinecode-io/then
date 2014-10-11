@@ -5,7 +5,7 @@ import io.machinecode.then.api.Promise;
 import java.util.Collection;
 
 /**
- * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  */
 public class Promises {
 

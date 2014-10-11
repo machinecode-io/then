@@ -9,7 +9,7 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 /**
- * @author Brent Douglas <brent.n.douglas@gmail.com>
+ * @author Brent Douglas (brent.n.douglas@gmail.com)
  */
 public class ResolvedPromiseTest {
 
