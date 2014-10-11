@@ -1,7 +1,7 @@
 package io.machinecode.then.api;
 
 /**
- * Listener for a {@link Promise} entering a {@link Promise#CANCELLED} terminal state.
+ * <p>Listener for a {@link Promise} entering a {@link Promise#CANCELLED} terminal state.</p>
  *
  * @see Promise
  * @author Brent Douglas (brent.n.douglas@gmail.com)

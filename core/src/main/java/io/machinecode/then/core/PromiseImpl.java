@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * A thread safe promise implementation that silently drops multiple calls to terminal methods.
+ * <p>A thread safe promise implementation that silently drops multiple calls to terminal methods.</p>
  *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0

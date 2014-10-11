@@ -1,8 +1,8 @@
 package io.machinecode.then.api;
 
 /**
- * Listener for a {@link Promise} entering a state where {@link io.machinecode.then.api.Promise#isDone()}
- * returns true.
+ * <p>Listener for a {@link Promise} entering a state where {@link io.machinecode.then.api.Promise#isDone()}
+ * returns true.</p>
  *
  * @see Promise
  * @author Brent Douglas (brent.n.douglas@gmail.com)

@@ -6,11 +6,11 @@ import io.machinecode.then.api.RejectedException;
 import io.machinecode.then.api.ResolvedException;
 
 /**
- * A {@link Promise} implementation that will throw a {@link io.machinecode.then.api.CompletionException}
- * if completion is attempted multiple times.
+ * <p>A {@link Promise} implementation that will throw a {@link io.machinecode.then.api.CompletionException}
+ * if completion is attempted multiple times.</p>
  *
- * {@link #cancel(boolean)} will never throw a completion exception in order to maintain compatibility
- * with {@link java.util.concurrent.Future#cancel(boolean)}
+ * <p>{@link #cancel(boolean)} will never throw a completion exception in order to maintain compatibility
+ * with {@link java.util.concurrent.Future#cancel(boolean)}</p>
  *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0

@@ -1,7 +1,7 @@
 package io.machinecode.then.core;
 
 /**
- * A promise that is set to the {@link #RESOLVED} terminal state when constructed.
+ * <p>A promise that is set to the {@link #RESOLVED} terminal state when constructed.</p>
  *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0

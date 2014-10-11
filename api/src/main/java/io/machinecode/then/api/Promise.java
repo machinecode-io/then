@@ -4,15 +4,15 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A representation of a computation allowing listeners to be notified of state changes. This representation allows
+ * <p>A representation of a computation allowing listeners to be notified of state changes. This representation allows
  * for four main states: {@link #PENDING}, {@link #RESOLVED}, {@link #REJECTED} and {@link #CANCELLED}. Of these
  * {@link #RESOLVED}, {@link #REJECTED} and {@link #CANCELLED} will be referred to as 'terminal states', that is a
  * state when the {@link #isDone()} method will return {@code true}. A promise reaches one of these states by a call
  * to a 'terminal method', one of {@link #resolve(Object)}, {@link #reject(Throwable)} and {@link #cancel(boolean)}
- * respectively.
+ * respectively.</p>
  *
- * The javadoc here only considers these three terminal states however this definition does not preclude inheritors
- * from adding further terminal states and associated methods.
+ * <p>The javadoc here only considers these three terminal states however this definition does not preclude inheritors
+ * from adding further terminal states and associated methods.</p>
  *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0

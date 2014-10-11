@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 /**
- * Message bundle for
+ * <p>Message bundle for Then library.</p>
  *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0

@@ -5,15 +5,17 @@ import io.machinecode.then.api.Promise;
 import java.util.Collection;
 
 /**
+ * <p>Factory methods for different types of {@link Promise}'s.</p>
+ *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  */
 public class Promises {
 
-    public static <T,F extends Throwable> Promise<T,F> basic() {
+    public static <T,F extends Throwable> Promise<T,F> promise() {
         return new PromiseImpl<T, F>();
     }
 
-    public static <T,F extends Throwable> Promise<T,F> all(final Collection<Promise<?, ?>> promises) {
+    public static <T,F extends Throwable> Promise<T,F> all(final Collection<? extends Promise<?, ?>> promises) {
         return new AllPromise<T, F>(promises);
     }
 
@@ -21,7 +23,7 @@ public class Promises {
         return new AllPromise<T, F>(promises);
     }
 
-    public static <T> Promise<T,Throwable> any(final Collection<Promise<?, ?>> promises) {
+    public static <T> Promise<T,Throwable> any(final Collection<? extends Promise<?, ?>> promises) {
         return new AnyPromise<T>(promises);
     }
 

@@ -8,15 +8,15 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A promise that will be resolved when any of the promised passes to it are resolved.
- * If none of them are resolved this promise will be rejected with a {@link CompletionException}.
+ * <p>A promise that will be resolved when any of the promised passes to it are resolved. If none of them are resolved
+ * this promise will be rejected with a {@link CompletionException}.</p>
  *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
 public class AnyPromise<T> extends PromiseImpl<T,Throwable> {
 
-    public AnyPromise(final Collection<Promise<?, ?>> promises) {
+    public AnyPromise(final Collection<? extends Promise<?, ?>> promises) {
         if (promises.isEmpty()) {
             reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
             return;
