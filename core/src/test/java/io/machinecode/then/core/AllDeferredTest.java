@@ -1,8 +1,6 @@
-package io.machinecode.then.core.test;
+package io.machinecode.then.core;
 
 import io.machinecode.then.api.Promise;
-import io.machinecode.then.core.AllPromise;
-import io.machinecode.then.core.PromiseImpl;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -13,16 +11,16 @@ import java.util.Collections;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  */
 @SuppressWarnings("unchecked")
-public class AllPromiseTest {
+public class AllDeferredTest {
 
     @Test
     public void arrayResolveTest() throws Exception {
-        final PromiseImpl<Object,Throwable>[] ares = new PromiseImpl[] {
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>()
+        final DeferredImpl<Object,Throwable,Void>[] ares = new DeferredImpl[] {
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>()
         };
-        final AllPromise<Object,Throwable> pres = new AllPromise<Object,Throwable>(ares);
+        final Promise<Object,Throwable,Void> pres = new AllDeferred<Object,Throwable,Void>(ares);
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(0, res.count);
@@ -36,12 +34,12 @@ public class AllPromiseTest {
 
     @Test
     public void arrayRejectTest() throws Exception {
-        final PromiseImpl<Object,Throwable>[] arej = new PromiseImpl[] {
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>()
+        final DeferredImpl<Object,Throwable,Void>[] arej = new DeferredImpl[] {
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>()
         };
-        final AllPromise<Object,Throwable> prej = new AllPromise<Object,Throwable>(arej);
+        final Promise<Object, Throwable, Object> prej = Then.all(arej);
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -55,12 +53,12 @@ public class AllPromiseTest {
 
     @Test
     public void arrayCancelTest() throws Exception {
-        final PromiseImpl<Object,Throwable>[] acan = new PromiseImpl[] {
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>()
+        final DeferredImpl<Object,Throwable,Void>[] acan = new DeferredImpl[] {
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>()
         };
-        final AllPromise<Object,Throwable> pcan = new AllPromise<Object,Throwable>(acan);
+        final Promise<Object, Throwable, Object> pcan = Then.all(acan);
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -74,12 +72,12 @@ public class AllPromiseTest {
 
     @Test
     public void collectionResolveTest() throws Exception {
-        final PromiseImpl<Object,Throwable>[] ares = new PromiseImpl[] {
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>()
+        final DeferredImpl<Object,Throwable,Void>[] ares = new DeferredImpl[] {
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>()
         };
-        final AllPromise<Object,Throwable> pres = new AllPromise<Object,Throwable>(Arrays.<Promise<?, ?>>asList(ares));
+        final Promise<Object,Throwable,Void> pres = new AllDeferred<Object,Throwable,Void>(Arrays.<Promise<?,?,?>>asList(ares));
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(0, res.count);
@@ -93,12 +91,12 @@ public class AllPromiseTest {
 
     @Test
     public void collectionRejectTest() throws Exception {
-        final PromiseImpl<Object,Throwable>[] arej = new PromiseImpl[] {
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>()
+        final DeferredImpl<Object,Throwable,Void>[] arej = new DeferredImpl[] {
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>()
         };
-        final AllPromise<Object,Throwable> prej = new AllPromise<Object,Throwable>(Arrays.<Promise<?, ?>>asList(arej));
+        final Promise<Object, Throwable, Object> prej = Then.all(Arrays.<Promise<?,?,?>>asList(arej));
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -112,12 +110,12 @@ public class AllPromiseTest {
 
     @Test
     public void collectionCancelTest() throws Exception {
-        final PromiseImpl<Object,Throwable>[] acan = new PromiseImpl[] {
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>(),
-                new PromiseImpl<Object,Throwable>()
+        final DeferredImpl<Object,Throwable,Void>[] acan = new DeferredImpl[] {
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>(),
+                new DeferredImpl<Object,Throwable,Void>()
         };
-        final AllPromise<Object,Throwable> pcan = new AllPromise<Object,Throwable>(Arrays.<Promise<?, ?>>asList(acan));
+        final Promise<Object, Throwable, Object> pcan = Then.all(Arrays.<Promise<?,?,?>>asList(acan));
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -131,8 +129,8 @@ public class AllPromiseTest {
 
     @Test
     public void emptyArgsArrayTest() throws Exception {
-        final PromiseImpl<Object,Throwable>[] ares = new PromiseImpl[] {};
-        final AllPromise<Object,Throwable> pres = new AllPromise<Object,Throwable>(ares);
+        final DeferredImpl<Object,Throwable,Void>[] ares = new DeferredImpl[] {};
+        final Promise<Object,Throwable,Void> pres = new AllDeferred<Object,Throwable,Void>(ares);
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(1, res.count);
@@ -141,7 +139,7 @@ public class AllPromiseTest {
 
     @Test
     public void emptyArgsCollectionTest() throws Exception {
-        final AllPromise<Object,Throwable> pres = new AllPromise<Object,Throwable>(Collections.<Promise<?, ?>>emptyList());
+        final Promise<Object,Throwable,Void> pres = new AllDeferred<Object,Throwable,Void>(Collections.<Promise<?,?,?>>emptyList());
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(1, res.count);

@@ -1,9 +1,8 @@
-package io.machinecode.then.core.test;
+package io.machinecode.then.core;
 
 import io.machinecode.then.api.CancelledException;
 import io.machinecode.then.api.RejectedException;
 import io.machinecode.then.api.ResolvedException;
-import io.machinecode.then.core.OncePromise;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -12,13 +11,13 @@ import org.junit.Test;
  */
 public class OncePromiseTest {
 
-    //Test OncePromise which should throw various CompletionException if completion is attempted twice
+    //Test OnceDeferred which should throw various CompletionException if completion is attempted twice
 
     @Test
     public void deferredAlreadyResolvedTest() throws Exception {
         final Object val = new Object();
         try {
-            final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
             p.resolve(val);
             p.resolve(val);
             Assert.fail();
@@ -27,14 +26,14 @@ public class OncePromiseTest {
         }
 
         try {
-            final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
             p.resolve(val);
             p.reject(new Throwable());
             Assert.fail();
         } catch (final ResolvedException e) {
             //Expected
         }
-        final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
         p.resolve(val);
         p.cancel(true);
     }
@@ -43,7 +42,7 @@ public class OncePromiseTest {
     public void deferredAlreadyRejectedTest() throws Exception {
         final Throwable val = new Throwable();
         try {
-            final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
             p.reject(val);
             p.reject(val);
             Assert.fail();
@@ -51,14 +50,14 @@ public class OncePromiseTest {
             //Expected
         }
         try {
-            final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
             p.reject(val);
             p.resolve(new Object());
             Assert.fail();
         } catch (final RejectedException e) {
             //Expected
         }
-        final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
         p.reject(val);
         p.cancel(true);
     }
@@ -67,7 +66,7 @@ public class OncePromiseTest {
     public void deferredAlreadyCancelledTest() throws Exception {
         final Throwable val = new Throwable();
         try {
-            final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
             p.cancel(true);
             p.reject(val);
             Assert.fail();
@@ -75,14 +74,14 @@ public class OncePromiseTest {
             //Expected
         }
         try {
-            final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
             p.cancel(true);
             p.resolve(new Object());
             Assert.fail();
         } catch (final CancelledException e) {
             //Expected
         }
-        final OncePromise<Object,Throwable> p = new OncePromise<Object,Throwable>();
+        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
         p.cancel(true);
         p.cancel(true);
         // Cancel should be allowed to work with Future

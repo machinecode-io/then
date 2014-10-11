@@ -1,9 +1,9 @@
 package io.machinecode.then.api;
 
 /**
- * <p>Listener for a {@link Promise} entering a {@link Promise#RESOLVED} state.</p>
+ * <p>Listener for a {@link Deferred} entering a {@link Deferred#RESOLVED} state.</p>
  *
- * @see Promise
+ * @see Deferred
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */

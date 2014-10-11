@@ -1,8 +1,10 @@
 package io.machinecode.then.core;
 
+import io.machinecode.then.api.Deferred;
 import io.machinecode.then.api.ListenerException;
 import io.machinecode.then.api.OnCancel;
 import io.machinecode.then.api.OnComplete;
+import io.machinecode.then.api.OnProgress;
 import io.machinecode.then.api.OnReject;
 import io.machinecode.then.api.OnResolve;
 import io.machinecode.then.api.Promise;
@@ -21,20 +23,23 @@ import java.util.concurrent.locks.ReentrantLock;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
- * <p>A thread safe promise implementation that silently drops multiple calls to terminal methods.</p>
+ * <p>A thread safe {@link Deferred} implementation that silently drops multiple calls to terminal methods.</p>
+ *
+ * It will not report progress to a listener if the listener is added after the call to {@link #progress(Object)}
  *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
+public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
 
-    private static final Logger log = Logger.getLogger(PromiseImpl.class);
+    private static final Logger log = Logger.getLogger(DeferredImpl.class);
 
     protected static final byte ON_RESOLVE     = 100;
     protected static final byte ON_REJECT      = 101;
     protected static final byte ON_CANCEL      = 102;
     protected static final byte ON_COMPLETE    = 103;
-    protected static final byte ON_GET         = 104;
+    protected static final byte ON_PROGRESS    = 104;
+    protected static final byte ON_GET         = 105;
 
     protected volatile byte state = PENDING;
 
@@ -76,11 +81,11 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         return list;
     }
 
-    public PromiseImpl() {
+    public DeferredImpl() {
         this(2);
     }
 
-    public PromiseImpl(final int hint) {
+    public DeferredImpl(final int hint) {
         this._events = new Event[hint];
     }
 
@@ -140,8 +145,13 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
+    public Promise<T,F,P> promise() {
+        return this;
+    }
+
+    @Override
     public void resolve(final T value) throws ListenerException {
-        log().tracef(getResolveLogMessage());
+        log().tracef(getResolveLogMessage(), value);
         final List<OnResolve<T>> onResolves;
         final List<OnComplete> onCompletes;
         final int state;
@@ -162,7 +172,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 on.resolve(this.value);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000014.promise.on.resolve.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000013.promise.on.resolve.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -173,7 +183,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 on.complete(state);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000015.promise.on.complete.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000014.promise.on.complete.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -230,9 +240,32 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
+    public void progress(final P that) {
+        log().tracef(getProgressLogMessage(), that);
+        final List<OnProgress<P>> onProgresses;
+        _lock();
+        try {
+            onProgresses = this._getEvents(ON_PROGRESS);
+        } finally {
+            _unlock();
+        }
+        ListenerException exception = null;
+        for (final OnProgress<P> then : onProgresses) {
+            try {
+                then.progress(that);
+            } catch (final Throwable e) {
+                if (exception == null) {
+                    exception = new ListenerException(Messages.format("THEN-000015.promise.on.progress.exception"), e);
+                } else {
+                    exception.addSuppressed(e);
+                }
+            }
+        }
+    }
+
+    @Override
     public boolean cancel(final boolean mayInterruptIfRunning) throws ListenerException {
         log().tracef(getCancelLogMessage());
-        ListenerException exception = null;
         final List<OnCancel> onCancels;
         final List<OnComplete> onCompletes;
         final int state;
@@ -247,12 +280,13 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         } finally {
             _unlock();
         }
+        ListenerException exception = null;
         for (final OnCancel then : onCancels) {
             try {
                 then.cancel(mayInterruptIfRunning);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000013.promise.on.cancel.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000012.promise.on.cancel.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -263,7 +297,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
                 on.complete(state);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000015.promise.on.complete.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000014.promise.on.complete.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -309,7 +343,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
-    public PromiseImpl<T,F> onResolve(final OnResolve<T> then) {
+    public DeferredImpl<T,F,P> onResolve(final OnResolve<T> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onResolve"));
         }
@@ -336,7 +370,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
-    public PromiseImpl<T,F> onReject(final OnReject<F> then) {
+    public DeferredImpl<T,F,P> onReject(final OnReject<F> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onReject"));
         }
@@ -363,7 +397,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
-    public PromiseImpl<T,F> onCancel(final OnCancel then) {
+    public DeferredImpl<T,F,P> onCancel(final OnCancel then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onCancel"));
         }
@@ -390,7 +424,7 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
-    public PromiseImpl<T,F> onComplete(final OnComplete then) {
+    public DeferredImpl<T,F,P> onComplete(final OnComplete then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onComplete"));
         }
@@ -416,7 +450,22 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
     }
 
     @Override
-    public Promise<T,F> onGet(final Future<?> then) {
+    public Promise<T, F, P> onProgress(final OnProgress<P> then) {
+        if (then == null) {
+            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onProgress"));
+        }
+        boolean run = false;
+        _lock();
+        try {
+            _addEvent(ON_PROGRESS, then);
+        } finally {
+            _unlock();
+        }
+        return this;
+    }
+
+    @Override
+    public Promise<T,F,P> onGet(final Future<?> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onGet"));
         }
@@ -454,9 +503,9 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         }
         switch (state) {
             case CANCELLED:
-                throw _onGet(onGets, new CancellationException(Messages.format("THEN-000012.promise.cancelled")));
+                throw _onGet(onGets, new CancellationException(Messages.format("THEN-000010.promise.cancelled")));
             case REJECTED:
-                throw _onGet(onGets, new ExecutionException(Messages.format("THEN-000011.promise.rejected"), failure));
+                throw _onGet(onGets, new ExecutionException(Messages.format("THEN-000009.promise.rejected"), failure));
             case RESOLVED:
                 _onGet(onGets, null);
                 return value;
@@ -498,9 +547,9 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         }
         switch (state) {
             case CANCELLED:
-                throw _onTimedGet(onGets, end, new CancellationException(Messages.format("THEN-000012.promise.cancelled")));
+                throw _onTimedGet(onGets, end, new CancellationException(Messages.format("THEN-000010.promise.cancelled")));
             case REJECTED:
-                throw _onTimedGet(onGets, end, new ExecutionException(Messages.format("THEN-000011.promise.rejected"), failure));
+                throw _onTimedGet(onGets, end, new ExecutionException(Messages.format("THEN-000009.promise.rejected"), failure));
             case RESOLVED:
                 _onTimedGet(onGets, end, null);
                 return value;
@@ -557,12 +606,16 @@ public class PromiseImpl<T,F extends Throwable> implements Promise<T,F> {
         return Messages.get("THEN-000002.promise.cancel");
     }
 
+    protected String getProgressLogMessage() {
+        return Messages.get("THEN-000003.promise.progress");
+    }
+
     protected String getTimeoutExceptionMessage() {
-        return Messages.get("THEN-000003.promise.timeout");
+        return Messages.get("THEN-000004.promise.timeout");
     }
 
     protected String getInterruptedExceptionMessage() {
-        return Messages.format("THEN-000004.promise.interrupted");
+        return Messages.format("THEN-000005.promise.interrupted");
     }
 
     protected Logger log() {

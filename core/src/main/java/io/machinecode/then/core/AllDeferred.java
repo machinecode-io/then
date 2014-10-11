@@ -12,16 +12,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class AllPromise<T,F extends Throwable> extends PromiseImpl<T,F> {
+public class AllDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
 
     final AtomicInteger count = new AtomicInteger(0);
 
-    public AllPromise(final Collection<? extends Promise<?, ?>> promises) {
+    protected AllDeferred(final Collection<? extends Promise<?,?,?>> promises) {
         if (promises.isEmpty()) {
             resolve(null);
             return;
         }
-        for (final Promise<?,?> promise : promises) {
+        for (final Promise<?,?,?> promise : promises) {
             promise.onComplete(new OnComplete() {
                 @Override
                 public void complete(final int state) {
@@ -33,12 +33,12 @@ public class AllPromise<T,F extends Throwable> extends PromiseImpl<T,F> {
         }
     }
 
-    public AllPromise(final Promise<?, ?>... promises) {
+    protected AllDeferred(final Promise<?,?,?>... promises) {
         if (promises.length == 0) {
             resolve(null);
             return;
         }
-        for (final Promise<?,?> promise : promises) {
+        for (final Promise<?,?,?> promise : promises) {
             promise.onComplete(new OnComplete() {
                 @Override
                 public void complete(final int state) {

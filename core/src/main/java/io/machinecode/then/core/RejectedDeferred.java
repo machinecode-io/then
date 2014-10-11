@@ -6,9 +6,9 @@ package io.machinecode.then.core;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class RejectedPromise<T,F extends Throwable> extends PromiseImpl<T,F> {
+public class RejectedDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
 
-    public RejectedPromise(final F failure) {
+    protected RejectedDeferred(final F failure) {
         reject(failure);
     }
 }

@@ -1,4 +1,4 @@
-package io.machinecode.then.core.test;
+package io.machinecode.then.core;
 
 import io.machinecode.then.api.OnComplete;
 

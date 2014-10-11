@@ -14,15 +14,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class AnyPromise<T> extends PromiseImpl<T,Throwable> {
+public class AnyDeferred<T,P> extends DeferredImpl<T,CompletionException,P> {
 
-    public AnyPromise(final Collection<? extends Promise<?, ?>> promises) {
+    protected AnyDeferred(final Collection<? extends Promise<?,?,?>> promises) {
         if (promises.isEmpty()) {
             reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
             return;
         }
         final AtomicInteger count = new AtomicInteger(0);
-        for (final Promise<?,?> promise : promises) {
+        for (final Promise<?,?,?> promise : promises) {
             promise.onComplete(new OnComplete() {
                 @Override
                 public void complete(final int state) {
@@ -37,13 +37,13 @@ public class AnyPromise<T> extends PromiseImpl<T,Throwable> {
         }
     }
 
-    public AnyPromise(final Promise<?, ?>... promises) {
+    protected AnyDeferred(final Promise<?,?,?>... promises) {
         if (promises.length == 0) {
             reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
             return;
         }
         final AtomicInteger count = new AtomicInteger(0);
-        for (final Promise<?,?> promise : promises) {
+        for (final Promise<?,?,?> promise : promises) {
             promise.onComplete(new OnComplete() {
                 @Override
                 public void complete(final int state) {

@@ -1,12 +1,12 @@
 package io.machinecode.then.core;
 
 import io.machinecode.then.api.CancelledException;
-import io.machinecode.then.api.Promise;
+import io.machinecode.then.api.Deferred;
 import io.machinecode.then.api.RejectedException;
 import io.machinecode.then.api.ResolvedException;
 
 /**
- * <p>A {@link Promise} implementation that will throw a {@link io.machinecode.then.api.CompletionException}
+ * <p>A {@link Deferred} implementation that will throw a {@link io.machinecode.then.api.CompletionException}
  * if completion is attempted multiple times.</p>
  *
  * <p>{@link #cancel(boolean)} will never throw a completion exception in order to maintain compatibility
@@ -15,17 +15,17 @@ import io.machinecode.then.api.ResolvedException;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class OncePromise<T,F extends Throwable> extends PromiseImpl<T,F> {
+public class OnceDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
 
     @Override
     protected boolean setValue(final T value) {
         switch (this.state) {
             case REJECTED:
-                throw new RejectedException(Messages.get("THEN-000006.promise.already.rejected"));
+                throw new RejectedException(Messages.get("THEN-000007.promise.already.rejected"));
             case RESOLVED:
-                throw new ResolvedException(Messages.get("THEN-000005.promise.already.resolved"));
+                throw new ResolvedException(Messages.get("THEN-000006.promise.already.resolved"));
             case CANCELLED:
-                throw new CancelledException(Messages.get("THEN-000010.promise.already.cancelled"));
+                throw new CancelledException(Messages.get("THEN-000008.promise.already.cancelled"));
             default:
                 this.value = value;
                 this.state = RESOLVED;
@@ -37,11 +37,11 @@ public class OncePromise<T,F extends Throwable> extends PromiseImpl<T,F> {
     protected boolean setFailure(final F failure) {
         switch (this.state) {
             case REJECTED:
-                throw new RejectedException(Messages.get("THEN-000006.promise.already.rejected"));
+                throw new RejectedException(Messages.get("THEN-000007.promise.already.rejected"));
             case RESOLVED:
-                throw new ResolvedException(Messages.get("THEN-000005.promise.already.resolved"));
+                throw new ResolvedException(Messages.get("THEN-000006.promise.already.resolved"));
             case CANCELLED:
-                throw new CancelledException(Messages.get("THEN-000010.promise.already.cancelled"));
+                throw new CancelledException(Messages.get("THEN-000008.promise.already.cancelled"));
             default:
                 this.failure = failure;
                 this.state = REJECTED;
