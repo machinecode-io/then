@@ -20,6 +20,28 @@
         <module>core</module>
     </modules>
 
+    <developers>
+        <developer>
+            <id>brentdouglas</id>
+            <name>Brent Douglas</name>
+            <email>brent.n.douglas@gmail.com</email>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache License Version 2.0</name>
+            <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:${git.machinecode.io}/then.git</connection>
+        <developerConnection>scm:git:${git.machinecode.io}/then.git</developerConnection>
+        <url>${github.machinecode.io}</url>
+    </scm>
+
     <properties>
         <version.java>1.6</version.java>
 
