@@ -1,4 +1,5 @@
 # Then
+[![Build Status](https://travis-ci.org/machinecode-io/then.svg?branch=master)](https://travis-ci.org/machinecode-io/then)
 
 A promises library following goals:
 
