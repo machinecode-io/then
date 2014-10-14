@@ -1,7 +1,6 @@
 package io.machinecode.then.api;
 
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * <p>A read-only representation of a {@link Deferred} allowing listeners to be notified of state changes, though
@@ -98,12 +97,12 @@ public interface Promise<T, F extends Throwable, P> extends OnCancel, Future<T> 
     Promise<T,F,P> onProgress(final OnProgress<P> then);
 
     /**
-     * <p>Triggered when {@link #get(long, TimeUnit)} or {@link #get()} is called.
+     * <p>Triggered when {@link #get(long, java.util.concurrent.TimeUnit)} or {@link #get()} is called.
      * It will be called after this promise has transitioned into a state
      * where {@link #isDone()} will return {@code true}.</p>
      *
      * <p>Each get method will call the corresponding get method on the {@link Future}
-     * in the thread that called either {@link #get()} or {@link #get(long, TimeUnit)}.</p>
+     * in the thread that called either {@link #get()} or {@link #get(long, java.util.concurrent.TimeUnit)}.</p>
      *
      * @param then Callback to be executed
      * @return This instance for method chaining.

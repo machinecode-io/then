@@ -71,6 +71,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
         _events[_pos++] = new Event(event, that);
     }
 
+    @SuppressWarnings("unchecked")
     protected <X> List<X> _getEvents(final byte event) {
         final List<X> list = new LinkedList<X>();
         for (int i = 0; i < _pos; ++i) {
@@ -454,7 +455,6 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onProgress"));
         }
-        boolean run = false;
         _lock();
         try {
             _addEvent(ON_PROGRESS, then);

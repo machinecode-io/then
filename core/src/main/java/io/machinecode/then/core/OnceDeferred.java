@@ -1,12 +1,11 @@
 package io.machinecode.then.core;
 
 import io.machinecode.then.api.CancelledException;
-import io.machinecode.then.api.Deferred;
 import io.machinecode.then.api.RejectedException;
 import io.machinecode.then.api.ResolvedException;
 
 /**
- * <p>A {@link Deferred} implementation that will throw a {@link io.machinecode.then.api.CompletionException}
+ * <p>A {@link io.machinecode.then.api.Deferred} implementation that will throw a {@link io.machinecode.then.api.CompletionException}
  * if completion is attempted multiple times.</p>
  *
  * <p>{@link #cancel(boolean)} will never throw a completion exception in order to maintain compatibility
