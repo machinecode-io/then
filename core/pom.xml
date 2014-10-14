@@ -15,12 +15,10 @@
         <dependency>
             <groupId>io.machinecode.then</groupId>
             <artifactId>then-api</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>

@@ -7,7 +7,7 @@ package io.machinecode.then.api;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public interface OnReject<F extends Throwable> {
+public interface OnReject<F> {
 
     /**
      * @param fail The exception thrown by the computation represented by this promise.

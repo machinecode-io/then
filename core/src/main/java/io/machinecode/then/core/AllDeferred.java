@@ -12,11 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class AllDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
+public class AllDeferred<T,F,P> extends DeferredImpl<T,F,P> {
 
     final AtomicInteger count = new AtomicInteger(0);
 
-    protected AllDeferred(final Collection<? extends Promise<?,?,?>> promises) {
+    public AllDeferred(final Collection<? extends Promise<?,?,?>> promises) {
         if (promises.isEmpty()) {
             resolve(null);
             return;
@@ -33,7 +33,7 @@ public class AllDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
         }
     }
 
-    protected AllDeferred(final Promise<?,?,?>... promises) {
+    public AllDeferred(final Promise<?,?,?>... promises) {
         if (promises.length == 0) {
             resolve(null);
             return;

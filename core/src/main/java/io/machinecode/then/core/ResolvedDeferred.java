@@ -6,9 +6,9 @@ package io.machinecode.then.core;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class ResolvedDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
+public class ResolvedDeferred<T,F,P> extends DeferredImpl<T,F,P> {
 
-    protected ResolvedDeferred(final T value) {
+    public ResolvedDeferred(final T value) {
         resolve(value);
     }
 }

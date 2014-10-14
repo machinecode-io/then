@@ -1,6 +1,7 @@
 package io.machinecode.then.core;
 
 import io.machinecode.then.api.Deferred;
+import io.machinecode.then.api.FailureException;
 import io.machinecode.then.api.ListenerException;
 import io.machinecode.then.api.OnCancel;
 import io.machinecode.then.api.OnComplete;
@@ -30,7 +31,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
+public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
 
     private static final Logger log = Logger.getLogger(DeferredImpl.class);
 
@@ -73,7 +74,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
 
     @SuppressWarnings("unchecked")
     protected <X> List<X> _getEvents(final byte event) {
-        final List<X> list = new LinkedList<X>();
+        final List<X> list = new LinkedList<>();
         for (int i = 0; i < _pos; ++i) {
             if (event == _events[i].event) {
                 list.add((X) _events[i].value);
@@ -173,7 +174,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
                 on.resolve(this.value);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000013.promise.on.resolve.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000300.promise.on.resolve.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -184,7 +185,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
                 on.complete(state);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000014.promise.on.complete.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000303.promise.on.complete.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -203,7 +204,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
 
     @Override
     public void reject(final F failure) {
-        log().tracef(failure, getRejectLogMessage());
+        log().tracef(getRejectLogMessage(), failure);
         final List<OnReject<F>> onRejects;
         final List<OnComplete> onCompletes;
         final int state;
@@ -218,18 +219,27 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
         } finally {
             _unlock();
         }
+        ListenerException exception = null;
         for (final OnReject<F> then : onRejects) {
             try {
                 then.reject(this.failure);
             } catch (final Throwable e) {
-                failure.addSuppressed(e);
+                if (exception == null) {
+                    exception = new ListenerException(Messages.format("THEN-000301.promise.on.reject.exception"), e);
+                } else {
+                    exception.addSuppressed(e);
+                }
             }
         }
         for (final OnComplete on : onCompletes) {
             try {
                 on.complete(state);
             } catch (final Throwable e) {
-                failure.addSuppressed(e);
+                if (exception == null) {
+                    exception = new ListenerException(Messages.format("THEN-000303.promise.on.complete.exception"), e);
+                } else {
+                    exception.addSuppressed(e);
+                }
             }
         }
         _lock();
@@ -237,6 +247,9 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
             _signalAll();
         } finally {
             _unlock();
+        }
+        if (exception != null) {
+            throw exception;
         }
     }
 
@@ -256,7 +269,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
                 then.progress(that);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000015.promise.on.progress.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000304.promise.on.progress.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -287,7 +300,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
                 then.cancel(mayInterruptIfRunning);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000012.promise.on.cancel.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000302.promise.on.cancel.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -298,7 +311,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
                 on.complete(state);
             } catch (final Throwable e) {
                 if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000014.promise.on.complete.exception"), e);
+                    exception = new ListenerException(Messages.format("THEN-000303.promise.on.complete.exception"), e);
                 } else {
                     exception.addSuppressed(e);
                 }
@@ -344,9 +357,9 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public DeferredImpl<T,F,P> onResolve(final OnResolve<T> then) {
+    public Deferred<T,F,P> onResolve(final OnResolve<T> then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onResolve"));
+            throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onResolve"));
         }
         boolean run = false;
         _lock();
@@ -371,9 +384,9 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public DeferredImpl<T,F,P> onReject(final OnReject<F> then) {
+    public Deferred<T,F,P> onReject(final OnReject<F> then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onReject"));
+            throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onReject"));
         }
         boolean run = false;
         _lock();
@@ -398,9 +411,9 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public DeferredImpl<T,F,P> onCancel(final OnCancel then) {
+    public Deferred<T,F,P> onCancel(final OnCancel then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onCancel"));
+            throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onCancel"));
         }
         boolean run = false;
         _lock();
@@ -425,9 +438,9 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public DeferredImpl<T,F,P> onComplete(final OnComplete then) {
+    public Deferred<T,F,P> onComplete(final OnComplete then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onComplete"));
+            throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onComplete"));
         }
         boolean run = false;
         _lock();
@@ -451,9 +464,9 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public Promise<T, F, P> onProgress(final OnProgress<P> then) {
+    public Deferred<T, F, P> onProgress(final OnProgress<P> then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onProgress"));
+            throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onProgress"));
         }
         _lock();
         try {
@@ -465,9 +478,9 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public Promise<T,F,P> onGet(final Future<?> then) {
+    public Deferred<T,F,P> onGet(final Future<?> then) {
         if (then == null) {
-            throw new IllegalArgumentException(Messages.format("THEN-000017.promise.argument.required", "onGet"));
+            throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onGet"));
         }
         _addEvent(ON_GET, then);
         return this;
@@ -503,14 +516,15 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
         }
         switch (state) {
             case CANCELLED:
-                throw _onGet(onGets, new CancellationException(Messages.format("THEN-000010.promise.cancelled")));
+                throw _onGet(onGets, new CancellationException(Messages.format("THEN-000202.promise.cancelled")));
             case REJECTED:
-                throw _onGet(onGets, new ExecutionException(Messages.format("THEN-000009.promise.rejected"), failure));
+                final String msg = Messages.format("THEN-000201.promise.rejected");
+                throw _onGet(onGets, new ExecutionException(msg, _getFailureCause(msg)));
             case RESOLVED:
                 _onGet(onGets, null);
                 return value;
             default:
-                throw new IllegalStateException(Messages.format("THEN-000016.promise.illegal.state", _stateToString(state)));
+                throw new IllegalStateException(Messages.format("THEN-000200.promise.illegal.state", _stateToString(state)));
         }
     }
 
@@ -547,14 +561,15 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
         }
         switch (state) {
             case CANCELLED:
-                throw _onTimedGet(onGets, end, new CancellationException(Messages.format("THEN-000010.promise.cancelled")));
+                throw _onTimedGet(onGets, end, new CancellationException(Messages.format("THEN-000202.promise.cancelled")));
             case REJECTED:
-                throw _onTimedGet(onGets, end, new ExecutionException(Messages.format("THEN-000009.promise.rejected"), failure));
+                final String msg = Messages.format("THEN-000201.promise.rejected");
+                throw _onTimedGet(onGets, end, new ExecutionException(msg, _getFailureCause(msg)));
             case RESOLVED:
                 _onTimedGet(onGets, end, null);
                 return value;
             default:
-                throw new IllegalStateException(Messages.format("THEN-000016.promise.illegal.state", _stateToString(state)));
+                throw new IllegalStateException(Messages.format("THEN-000200.promise.illegal.state", _stateToString(state)));
         }
     }
 
@@ -566,7 +581,7 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
                 if (exception != null) {
                     exception.addSuppressed(e);
                 }
-                log.tracef(e, Messages.get("THEN-000018.promise.get.exception"));
+                log.tracef(e, Messages.get("THEN-000401.promise.get.exception"));
             }
         }
         return exception;
@@ -580,10 +595,16 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
                 if (exception != null) {
                     exception.addSuppressed(e);
                 }
-                log.tracef(e, Messages.get("THEN-000018.promise.get.exception"));
+                log.tracef(e, Messages.get("THEN-000401.promise.get.exception"));
             }
         }
         return exception;
+    }
+
+    protected Throwable _getFailureCause(final String msg) {
+        return failure instanceof Throwable
+                ? (Throwable)failure
+                : new FailureException(msg, failure);
     }
 
     protected long _tryTimeout(final long end) throws TimeoutException {
@@ -611,11 +632,11 @@ public class DeferredImpl<T,F extends Throwable, P> implements Deferred<T,F,P> {
     }
 
     protected String getTimeoutExceptionMessage() {
-        return Messages.get("THEN-000004.promise.timeout");
+        return Messages.get("THEN-000100.promise.timeout");
     }
 
     protected String getInterruptedExceptionMessage() {
-        return Messages.format("THEN-000005.promise.interrupted");
+        return Messages.format("THEN-000101.promise.interrupted");
     }
 
     protected Logger log() {

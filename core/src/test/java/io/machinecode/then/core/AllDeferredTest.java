@@ -1,6 +1,7 @@
 package io.machinecode.then.core;
 
 import io.machinecode.then.api.Promise;
+import io.machinecode.then.api.Promises;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -9,9 +10,12 @@ import java.util.Collections;
 
 /**
  * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @since 1.0
  */
 @SuppressWarnings("unchecked")
 public class AllDeferredTest {
+    
+    final Promises promises = new PromisesImpl();
 
     @Test
     public void arrayResolveTest() throws Exception {
@@ -39,7 +43,7 @@ public class AllDeferredTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object, Throwable, Object> prej = Then.all(arej);
+        final Promise<Object, Throwable, Object> prej = promises.all(arej);
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -58,7 +62,7 @@ public class AllDeferredTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object, Throwable, Object> pcan = Then.all(acan);
+        final Promise<Object, Throwable, Object> pcan = promises.all(acan);
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -96,7 +100,7 @@ public class AllDeferredTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object, Throwable, Object> prej = Then.all(Arrays.<Promise<?,?,?>>asList(arej));
+        final Promise<Object, Throwable, Object> prej = promises.all(Arrays.<Promise<?, ?, ?>>asList(arej));
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -115,7 +119,7 @@ public class AllDeferredTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object, Throwable, Object> pcan = Then.all(Arrays.<Promise<?,?,?>>asList(acan));
+        final Promise<Object, Throwable, Object> pcan = promises.all(Arrays.<Promise<?, ?, ?>>asList(acan));
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);

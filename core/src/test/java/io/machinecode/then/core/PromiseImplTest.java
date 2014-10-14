@@ -11,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @since 1.0
  */
 public class PromiseImplTest {
 

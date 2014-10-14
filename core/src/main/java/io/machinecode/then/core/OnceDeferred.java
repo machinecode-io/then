@@ -14,17 +14,17 @@ import io.machinecode.then.api.ResolvedException;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class OnceDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
+public class OnceDeferred<T,F,P> extends DeferredImpl<T,F,P> {
 
     @Override
     protected boolean setValue(final T value) {
         switch (this.state) {
             case REJECTED:
-                throw new RejectedException(Messages.get("THEN-000007.promise.already.rejected"));
+                throw new RejectedException(Messages.get("THEN-000103.promise.already.rejected"));
             case RESOLVED:
-                throw new ResolvedException(Messages.get("THEN-000006.promise.already.resolved"));
+                throw new ResolvedException(Messages.get("THEN-000102.promise.already.resolved"));
             case CANCELLED:
-                throw new CancelledException(Messages.get("THEN-000008.promise.already.cancelled"));
+                throw new CancelledException(Messages.get("THEN-000104.promise.already.cancelled"));
             default:
                 this.value = value;
                 this.state = RESOLVED;
@@ -36,11 +36,11 @@ public class OnceDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
     protected boolean setFailure(final F failure) {
         switch (this.state) {
             case REJECTED:
-                throw new RejectedException(Messages.get("THEN-000007.promise.already.rejected"));
+                throw new RejectedException(Messages.get("THEN-000103.promise.already.rejected"));
             case RESOLVED:
-                throw new ResolvedException(Messages.get("THEN-000006.promise.already.resolved"));
+                throw new ResolvedException(Messages.get("THEN-000102.promise.already.resolved"));
             case CANCELLED:
-                throw new CancelledException(Messages.get("THEN-000008.promise.already.cancelled"));
+                throw new CancelledException(Messages.get("THEN-000104.promise.already.cancelled"));
             default:
                 this.failure = failure;
                 this.state = REJECTED;

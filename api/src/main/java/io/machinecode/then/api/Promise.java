@@ -10,7 +10,7 @@ import java.util.concurrent.Future;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public interface Promise<T, F extends Throwable, P> extends OnCancel, Future<T> {
+public interface Promise<T,F,P> extends OnCancel, Future<T> {
 
     /**
      * <p>Called to attempt to stop the computation. Calling this method does not guarantee that the computation will
@@ -39,7 +39,7 @@ public interface Promise<T, F extends Throwable, P> extends OnCancel, Future<T> 
     boolean isResolved();
 
     /**
-     * @return {@code true} if {@link Deferred#reject(Throwable)} was  the first terminal method called.
+     * @return {@code true} if {@link Deferred#reject(Object)} was  the first terminal method called.
      */
     boolean isRejected();
 
@@ -58,7 +58,7 @@ public interface Promise<T, F extends Throwable, P> extends OnCancel, Future<T> 
     Promise<T,F,P> onResolve(final OnResolve<T> then);
 
     /**
-     * <p>Triggered when {@link Deferred#reject(Throwable)} is the first terminal method called.</p>
+     * <p>Triggered when {@link Deferred#reject(Object)} is the first terminal method called.</p>
      *
      * @param then Callback to be executed
      * @return This instance for method chaining.

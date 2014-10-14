@@ -1,24 +1,27 @@
 package io.machinecode.then.core;
 
-import io.machinecode.then.api.CompletionException;
 import io.machinecode.then.api.OnComplete;
 import io.machinecode.then.api.Promise;
+import org.jboss.logging.Logger;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <p>A promise that will be resolved when any of the promised passes to it are resolved. If none of them are resolved
- * this promise will be rejected with a {@link CompletionException}.</p>
+ * this promise will be rejected with {@code null}.</p>
  *
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class AnyDeferred<T,P> extends DeferredImpl<T,CompletionException,P> {
+public class AnyDeferred<T,F,P> extends DeferredImpl<T,F,P> {
 
-    protected AnyDeferred(final Collection<? extends Promise<?,?,?>> promises) {
+    private static final Logger log = Logger.getLogger(AnyDeferred.class);
+
+    public AnyDeferred(final Collection<? extends Promise<?,?,?>> promises) {
         if (promises.isEmpty()) {
-            reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
+            log.tracef(Messages.get("THEN-000500.promise.none.resolved.in.any"));
+            reject(null);
             return;
         }
         final AtomicInteger count = new AtomicInteger(0);
@@ -30,16 +33,18 @@ public class AnyDeferred<T,P> extends DeferredImpl<T,CompletionException,P> {
                     if (state == RESOLVED) {
                         resolve(null);
                     } else if (n == promises.size()) {
-                        reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
+                        log.tracef(Messages.get("THEN-000500.promise.none.resolved.in.any"));
+                        reject(null);
                     }
                 }
             });
         }
     }
 
-    protected AnyDeferred(final Promise<?,?,?>... promises) {
+    public AnyDeferred(final Promise<?,?,?>... promises) {
         if (promises.length == 0) {
-            reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
+            log.tracef(Messages.get("THEN-000500.promise.none.resolved.in.any"));
+            reject(null);
             return;
         }
         final AtomicInteger count = new AtomicInteger(0);
@@ -51,7 +56,8 @@ public class AnyDeferred<T,P> extends DeferredImpl<T,CompletionException,P> {
                     if (state == RESOLVED) {
                         resolve(null);
                     } else if (n == promises.length) {
-                        reject(new CompletionException(Messages.get("THEN-000019.promise.none.resolved.in.any")));
+                        log.tracef(Messages.get("THEN-000500.promise.none.resolved.in.any"));
+                        reject(null);
                     }
                 }
             });

@@ -6,9 +6,9 @@ package io.machinecode.then.core;
  * @author Brent Douglas (brent.n.douglas@gmail.com)
  * @since 1.0
  */
-public class CancelledDeferred<T,F extends Throwable,P> extends DeferredImpl<T,F,P> {
+public class CancelledDeferred<T,F,P> extends DeferredImpl<T,F,P> {
 
-    protected CancelledDeferred(final boolean interrupt) {
+    public CancelledDeferred(final boolean interrupt) {
         cancel(interrupt);
     }
 }
