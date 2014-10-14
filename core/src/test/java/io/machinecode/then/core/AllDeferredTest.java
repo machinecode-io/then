@@ -20,7 +20,7 @@ public class AllDeferredTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,Throwable,Void> pres = new AllDeferred<Object,Throwable,Void>(ares);
+        final Promise<Object,Throwable,Void> pres = new AllDeferred<>(ares);
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(0, res.count);
@@ -77,7 +77,7 @@ public class AllDeferredTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,Throwable,Void> pres = new AllDeferred<Object,Throwable,Void>(Arrays.<Promise<?,?,?>>asList(ares));
+        final Promise<Object,Throwable,Void> pres = new AllDeferred<>(Arrays.<Promise<?,?,?>>asList(ares));
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(0, res.count);
@@ -130,7 +130,7 @@ public class AllDeferredTest {
     @Test
     public void emptyArgsArrayTest() throws Exception {
         final DeferredImpl<Object,Throwable,Void>[] ares = new DeferredImpl[] {};
-        final Promise<Object,Throwable,Void> pres = new AllDeferred<Object,Throwable,Void>(ares);
+        final Promise<Object,Throwable,Void> pres = new AllDeferred<>(ares);
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(1, res.count);
@@ -139,7 +139,7 @@ public class AllDeferredTest {
 
     @Test
     public void emptyArgsCollectionTest() throws Exception {
-        final Promise<Object,Throwable,Void> pres = new AllDeferred<Object,Throwable,Void>(Collections.<Promise<?,?,?>>emptyList());
+        final Promise<Object,Throwable,Void> pres = new AllDeferred<>(Collections.<Promise<?,?,?>>emptyList());
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(1, res.count);

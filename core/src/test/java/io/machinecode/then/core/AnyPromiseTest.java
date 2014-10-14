@@ -22,7 +22,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> pres = new AnyDeferred<Object,Void>(ares);
+            final Promise<Object,CompletionException,Void> pres = new AnyDeferred<>(ares);
             final Count res = new Count();
             pres.onComplete(res);
             Assert.assertEquals(0, res.count);
@@ -40,7 +40,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(arej);
+            final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(arej);
             final Count rej = new Count();
             prej.onComplete(rej);
             Assert.assertEquals(0, rej.count);
@@ -61,7 +61,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(arej);
+        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(arej);
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -81,7 +81,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(arej);
+        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(arej);
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -101,7 +101,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(arej);
+        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(arej);
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -121,7 +121,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(arej);
+        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(arej);
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -139,7 +139,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(acan);
+        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(acan);
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -159,7 +159,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(acan);
+        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(acan);
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -179,7 +179,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(acan);
+        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(acan);
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -199,7 +199,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(acan);
+        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(acan);
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -219,7 +219,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(acan);
+        final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(acan);
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -233,7 +233,7 @@ public class AnyPromiseTest {
     @Test
     public void arrayEmptyArgsTest() throws Exception {
         final DeferredImpl<Object,Throwable,Void>[] ares = new DeferredImpl[] {};
-        final Promise<Object,CompletionException,Void> pres = new AnyDeferred<Object,Void>(ares);
+        final Promise<Object,CompletionException,Void> pres = new AnyDeferred<>(ares);
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(1, res.count);
@@ -248,7 +248,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> pres = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(ares));
+            final Promise<Object,CompletionException,Void> pres = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(ares));
             final Count res = new Count();
             pres.onComplete(res);
             Assert.assertEquals(0, res.count);
@@ -265,7 +265,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(arej));
+        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(arej));
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -285,7 +285,7 @@ public class AnyPromiseTest {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(arej));
+        final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(arej));
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
@@ -305,7 +305,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(arej));
+            final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(arej));
             final Count rej = new Count();
             prej.onComplete(rej);
             Assert.assertEquals(0, rej.count);
@@ -325,7 +325,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(arej));
+            final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(arej));
             final Count rej = new Count();
             prej.onComplete(rej);
             Assert.assertEquals(0, rej.count);
@@ -345,7 +345,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> prej = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(arej));
+            final Promise<Object,CompletionException,Void> prej = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(arej));
             final Count rej = new Count();
             prej.onComplete(rej);
             Assert.assertEquals(0, rej.count);
@@ -363,7 +363,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(acan));
+            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(acan));
             final Count can = new Count();
             pcan.onComplete(can);
             Assert.assertEquals(0, can.count);
@@ -383,7 +383,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(acan));
+            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(acan));
             final Count can = new Count();
             pcan.onComplete(can);
             Assert.assertEquals(0, can.count);
@@ -403,7 +403,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(acan));
+            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(acan));
             final Count can = new Count();
             pcan.onComplete(can);
             Assert.assertEquals(0, can.count);
@@ -423,7 +423,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(acan));
+            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(acan));
             final Count can = new Count();
             pcan.onComplete(can);
             Assert.assertEquals(0, can.count);
@@ -443,7 +443,7 @@ public class AnyPromiseTest {
                     new DeferredImpl<Object,Throwable,Void>(),
                     new DeferredImpl<Object,Throwable,Void>()
             };
-            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<Object,Void>(Arrays.<Promise<?,?,?>>asList(acan));
+            final Promise<Object,CompletionException,Void> pcan = new AnyDeferred<>(Arrays.<Promise<?,?,?>>asList(acan));
             final Count can = new Count();
             pcan.onComplete(can);
             Assert.assertEquals(0, can.count);
@@ -456,7 +456,7 @@ public class AnyPromiseTest {
 
     @Test
     public void collectionEmptyArgsTest() throws Exception {
-        final Promise<Object,CompletionException,Void> pres = new AnyDeferred<Object,Void>(Collections.<Promise<?,?,?>>emptyList());
+        final Promise<Object,CompletionException,Void> pres = new AnyDeferred<>(Collections.<Promise<?,?,?>>emptyList());
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(1, res.count);

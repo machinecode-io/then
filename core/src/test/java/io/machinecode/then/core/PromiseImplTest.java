@@ -16,21 +16,21 @@ public class PromiseImplTest {
 
     @Test
     public void promiseCompleteTest() throws Exception {
-        final DeferredImpl<Object,Throwable,Void> pres = new DeferredImpl<Object,Throwable,Void>();
+        final DeferredImpl<Object,Throwable,Void> pres = new DeferredImpl<>();
         final Count res = new Count();
         pres.onComplete(res);
         Assert.assertEquals(0, res.count);
         pres.resolve(null);
         Assert.assertEquals(1, res.count);
 
-        final DeferredImpl<Object,Throwable,Void> prej = new DeferredImpl<Object,Throwable,Void>();
+        final DeferredImpl<Object,Throwable,Void> prej = new DeferredImpl<>();
         final Count rej = new Count();
         prej.onComplete(rej);
         Assert.assertEquals(0, rej.count);
         prej.reject(new Throwable());
         Assert.assertEquals(1, rej.count);
 
-        final DeferredImpl<Object,Throwable,Void> pcan = new DeferredImpl<Object,Throwable,Void>();
+        final DeferredImpl<Object,Throwable,Void> pcan = new DeferredImpl<>();
         final Count can = new Count();
         pcan.onComplete(can);
         Assert.assertEquals(0, can.count);
@@ -41,7 +41,7 @@ public class PromiseImplTest {
     @Test
     public void promiseResolveTest() throws Exception {
         final Object val = new Object();
-        final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+        final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
@@ -76,7 +76,7 @@ public class PromiseImplTest {
     @Test
     public void promiseRejectTest() throws Exception {
         final Throwable val = new Throwable();
-        final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+        final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
@@ -110,7 +110,7 @@ public class PromiseImplTest {
 
     @Test
     public void promiseCancelTest() throws Exception {
-        final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+        final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
         final boolean[] called = new boolean[] { false, false };
         p.onComplete(new OnComplete() {
             @Override
@@ -145,17 +145,17 @@ public class PromiseImplTest {
     public void promiseRepeatResolvedTest() throws Exception {
         final Object val = new Object();
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.resolve(val);
             p.resolve(val);
         }
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.resolve(val);
             p.reject(new Throwable());
         }
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.resolve(val);
             p.cancel(true);
         }
@@ -165,17 +165,17 @@ public class PromiseImplTest {
     public void promiseRepeatRejectedTest() throws Exception {
         final Throwable val = new Throwable();
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.reject(val);
             p.reject(val);
         }
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.reject(val);
             p.resolve(new Object());
         }
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.reject(val);
             p.cancel(true);
         }
@@ -185,17 +185,17 @@ public class PromiseImplTest {
     public void promiseRepeatCancelledTest() throws Exception {
         final Throwable val = new Throwable();
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.cancel(true);
             p.reject(val);
         }
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.cancel(true);
             p.resolve(new Object());
         }
         {
-            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<Object,Throwable,Void>();
+            final DeferredImpl<Object,Throwable,Void> p = new DeferredImpl<>();
             p.cancel(true);
             p.cancel(true);
         }
@@ -203,9 +203,9 @@ public class PromiseImplTest {
 
     @Test
     public void promiseGetTest() throws Exception {
-        final DeferredImpl<Object,Throwable,Void> a = new DeferredImpl<Object,Throwable,Void>();
-        final DeferredImpl<Object,Throwable,Void> b = new DeferredImpl<Object,Throwable,Void>();
-        final DeferredImpl<Object,Throwable,Void> c = new DeferredImpl<Object,Throwable,Void>();
+        final DeferredImpl<Object,Throwable,Void> a = new DeferredImpl<>();
+        final DeferredImpl<Object,Throwable,Void> b = new DeferredImpl<>();
+        final DeferredImpl<Object,Throwable,Void> c = new DeferredImpl<>();
 
         a.onGet(b);
         b.onGet(c).onCancel(c);

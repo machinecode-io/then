@@ -15,7 +15,7 @@ public class RejectedPromiseTest {
 
     @Test
     public void promiseCompleteTest() throws Exception {
-        final Deferred<Object,Throwable,Void> pres = new RejectedDeferred<Object,Throwable,Void>(null);
+        final Deferred<Object,Throwable,Void> pres = new RejectedDeferred<>(null);
         final Count res = new Count();
         Assert.assertEquals(0, res.count);
         pres.onComplete(res);
@@ -23,7 +23,7 @@ public class RejectedPromiseTest {
         pres.resolve(null);
         Assert.assertEquals(1, res.count);
 
-        final Deferred<Object,Throwable,Void> prej = new RejectedDeferred<Object,Throwable,Void>(null);
+        final Deferred<Object,Throwable,Void> prej = new RejectedDeferred<>(null);
         final Count rej = new Count();
         Assert.assertEquals(0, rej.count);
         prej.onComplete(rej);
@@ -34,8 +34,8 @@ public class RejectedPromiseTest {
 
     @Test
     public void promiseResolveTest() throws Exception {
-        final Exception val = new Exception();
-        final Deferred<Object,Throwable,Void> p = new RejectedDeferred<Object,Throwable,Void>(val);
+        final Throwable val = new Exception();
+        final Deferred<Object,Throwable,Void> p = new RejectedDeferred<>(val);
         final boolean[] called = new boolean[] { false, false };
         p.reject(new Throwable()); //Should do nothing, other implementations can throw a ResolvedException
         p.resolve(new Object()); //Should also do nothing
@@ -67,12 +67,12 @@ public class RejectedPromiseTest {
     public void promiseRepeatResolvedTest() throws Exception {
         final Object val = new Object();
         {
-            final Deferred<Object,Throwable,Void> p = new RejectedDeferred<Object,Throwable,Void>(null);
+            final Deferred<Object,Throwable,Void> p = new RejectedDeferred<>(null);
             p.resolve(val);
             p.resolve(val);
         }
         {
-            final Deferred<Object,Throwable,Void> p = new RejectedDeferred<Object,Throwable,Void>(null);
+            final Deferred<Object,Throwable,Void> p = new RejectedDeferred<>(null);
             p.resolve(val);
             p.reject(new Throwable());
         }
@@ -82,12 +82,12 @@ public class RejectedPromiseTest {
     public void promiseRepeatRejectedTest() throws Exception {
         final Throwable val = new Throwable();
         {
-            final Deferred<Object,Throwable,Void> p = new RejectedDeferred<Object,Throwable,Void>(null);
+            final Deferred<Object,Throwable,Void> p = new RejectedDeferred<>(null);
             p.reject(val);
             p.reject(val);
         }
         {
-            final Deferred<Object,Throwable,Void> p = new RejectedDeferred<Object,Throwable,Void>(null);
+            final Deferred<Object,Throwable,Void> p = new RejectedDeferred<>(null);
             p.reject(val);
             p.resolve(new Object());
         }

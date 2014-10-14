@@ -17,7 +17,7 @@ public class OncePromiseTest {
     public void deferredAlreadyResolvedTest() throws Exception {
         final Object val = new Object();
         try {
-            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
             p.resolve(val);
             p.resolve(val);
             Assert.fail();
@@ -26,14 +26,14 @@ public class OncePromiseTest {
         }
 
         try {
-            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
             p.resolve(val);
             p.reject(new Throwable());
             Assert.fail();
         } catch (final ResolvedException e) {
             //Expected
         }
-        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
         p.resolve(val);
         p.cancel(true);
     }
@@ -42,7 +42,7 @@ public class OncePromiseTest {
     public void deferredAlreadyRejectedTest() throws Exception {
         final Throwable val = new Throwable();
         try {
-            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
             p.reject(val);
             p.reject(val);
             Assert.fail();
@@ -50,14 +50,14 @@ public class OncePromiseTest {
             //Expected
         }
         try {
-            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
             p.reject(val);
             p.resolve(new Object());
             Assert.fail();
         } catch (final RejectedException e) {
             //Expected
         }
-        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
         p.reject(val);
         p.cancel(true);
     }
@@ -66,7 +66,7 @@ public class OncePromiseTest {
     public void deferredAlreadyCancelledTest() throws Exception {
         final Throwable val = new Throwable();
         try {
-            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
             p.cancel(true);
             p.reject(val);
             Assert.fail();
@@ -74,14 +74,14 @@ public class OncePromiseTest {
             //Expected
         }
         try {
-            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+            final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
             p.cancel(true);
             p.resolve(new Object());
             Assert.fail();
         } catch (final CancelledException e) {
             //Expected
         }
-        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<Object,Throwable,Void>();
+        final OnceDeferred<Object,Throwable,Void> p = new OnceDeferred<>();
         p.cancel(true);
         p.cancel(true);
         // Cancel should be allowed to work with Future
