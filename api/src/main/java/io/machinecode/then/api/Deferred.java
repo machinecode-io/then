@@ -13,7 +13,7 @@ import java.util.concurrent.Future;
  * <p>The javadoc here only considers these three terminal states however this definition does not preclude inheritors
  * from adding further terminal states and associated methods.</p>
  *
- * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
 public interface Deferred<T,F,P> extends OnResolve<T>, OnReject<F>, OnProgress<P>, Promise<T,F,P> {

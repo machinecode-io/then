@@ -5,7 +5,7 @@
  * and "OPTIONAL" in javadoc in this package are to be interpreted as described in
  * <a href="https://www.ietf.org/rfc/rfc2119.txt">RFC 2119</a>.</p>
  *
- * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
 package io.machinecode.then.api;

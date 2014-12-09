@@ -5,7 +5,7 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Promise} that exposes a computational task suitable for execution by an {@link java.util.concurrent.ExecutorService}.</p>
  *
- * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
 public interface ExecutablePromise<T,F,P> extends Promise<T,F,P> {

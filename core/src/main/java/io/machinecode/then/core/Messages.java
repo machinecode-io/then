@@ -7,7 +7,7 @@ import java.util.ResourceBundle;
 /**
  * <p>Message bundle for Then library.</p>
  *
- * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
 public final class Messages {

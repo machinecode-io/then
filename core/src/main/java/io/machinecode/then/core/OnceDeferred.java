@@ -11,7 +11,7 @@ import io.machinecode.then.api.ResolvedException;
  * <p>{@link #cancel(boolean)} will never throw a completion exception in order to maintain compatibility
  * with {@link java.util.concurrent.Future#cancel(boolean)}</p>
  *
- * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
 public class OnceDeferred<T,F,P> extends DeferredImpl<T,F,P> {

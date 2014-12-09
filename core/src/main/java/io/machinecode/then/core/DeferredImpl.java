@@ -28,7 +28,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  *
  * It will not report progress to a listener if the listener is added after the call to {@link #progress(Object)}
  *
- * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
 public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {

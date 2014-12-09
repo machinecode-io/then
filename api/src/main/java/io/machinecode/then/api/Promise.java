@@ -7,7 +7,7 @@ import java.util.concurrent.Future;
  * clients are allowed to attempt to stop the computation using {@link #cancel(boolean)}.</p>
  *
  * @see Deferred
- * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
 public interface Promise<T,F,P> extends OnCancel, Future<T> {

@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * <p>Factory methods for different types of {@link io.machinecode.then.api.Promise}'s.</p>
  *
- * @author Brent Douglas (brent.n.douglas@gmail.com)
+ * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
 public interface Promises {
