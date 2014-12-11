@@ -12,19 +12,19 @@ import java.util.concurrent.TimeUnit;
  * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
-public class FutureDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements ExecutablePromise<T,Throwable,P>, Promise<T,Throwable,P>,Callable<T>, Runnable {
+public class FutureDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements ExecutablePromise<T,Throwable,P>, Promise<T,Throwable,P>, Callable<T>, Runnable {
 
-    protected final Future<T> future;
+    protected final Future<?extends T> future;
     protected final long timeout;
     protected final TimeUnit unit;
 
-    public FutureDeferred(final Future<T> future) {
+    public FutureDeferred(final Future<? extends T> future) {
         this.future = future;
         this.timeout = -1;
         this.unit = null;
     }
 
-    public FutureDeferred(final Future<T> future, final long timeout, final TimeUnit unit) {
+    public FutureDeferred(final Future<? extends T> future, final long timeout, final TimeUnit unit) {
         this.future = future;
         this.timeout = timeout;
         this.unit = unit;

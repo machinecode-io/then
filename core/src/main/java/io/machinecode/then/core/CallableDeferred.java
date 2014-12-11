@@ -11,9 +11,9 @@ import java.util.concurrent.Callable;
  */
 public class CallableDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements ExecutablePromise<T,Throwable,P>, Promise<T,Throwable,P>, Callable<T>, Runnable {
 
-    protected final Callable<T> call;
+    protected final Callable<? extends T> call;
 
-    public CallableDeferred(final Callable<T> call) {
+    public CallableDeferred(final Callable<? extends T> call) {
         this.call = call;
     }
 
