@@ -15,7 +15,7 @@ Available in Central. For the latest release:
 <dependency>
    <groupId>io.machinecode.then</groupId>
    <artifactId>then-core</artifactId>
-   <version>0.1.0</version>
+   <version>0.2.0</version>
 </dependency>
 ```
 
