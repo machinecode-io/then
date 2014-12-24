@@ -43,9 +43,12 @@
     </scm>
 
     <properties>
+        <root.dir>${user.dir}</root.dir>
+
         <version.org.jboss.logging.jboss-logging>3.1.4.GA</version.org.jboss.logging.jboss-logging>
 
         <version.junit.junit>4.10</version.junit.junit>
+        <version.org.codehaus.mojo.findbugs-maven-plugin>3.0.0</version.org.codehaus.mojo.findbugs-maven-plugin>
     </properties>
 
     <dependencyManagement>
@@ -90,6 +93,24 @@
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${version.org.codehaus.mojo.findbugs-maven-plugin}</version>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <xmlOutput>true</xmlOutput>
+                    <excludeFilterFile>${root.dir}/findbugs-exclude.xml</excludeFilterFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

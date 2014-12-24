@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter xmlns="http://findbugs.sourceforge.net/filter/3.0.0"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://findbugs.sourceforge.net/filter/3.0.0 https://findbugs.googlecode.com/git/findbugs/etc/findbugsfilter.xsd">
+    <Match>
+        <Class name="io.machinecode.then.core.DeferredImpl"/>
+        <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="io.machinecode.then.core.DeferredImpl"/>
+        <Method name="_await"/>
+        <Bug pattern="WA_AWAIT_NOT_IN_LOOP"/>
+    </Match>
+    <Match>
+        <Class name="io.machinecode.then.core.DeferredImpl"/>
+        <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+    </Match>
+</FindBugsFilter>

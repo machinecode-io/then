@@ -1,7 +1,6 @@
 package io.machinecode.then.core;
 
 import io.machinecode.then.api.ExecutablePromise;
-import io.machinecode.then.api.Promise;
 
 import java.util.concurrent.Callable;
 
@@ -9,7 +8,7 @@ import java.util.concurrent.Callable;
  * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
-public class CallableDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements ExecutablePromise<T,Throwable,P>, Promise<T,Throwable,P>, Callable<T>, Runnable {
+public class CallableDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements ExecutablePromise<T,Throwable,P>, Callable<T>, Runnable {
 
     protected final Callable<? extends T> call;
 

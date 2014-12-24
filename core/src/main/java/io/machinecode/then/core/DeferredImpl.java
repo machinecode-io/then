@@ -44,14 +44,14 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
 
     protected volatile byte state = PENDING;
 
-    protected volatile T value;
-    protected volatile F failure;
+    protected T value;
+    protected F failure;
 
     private final ReentrantLock _lock = new ReentrantLock();
     private final Condition _condition = _lock.newCondition();
 
-    private volatile Event[] _events;
-    private volatile int _pos = 0;
+    private Event[] _events;
+    private int _pos = 0;
 
     private static class Event {
         final byte event;
@@ -482,7 +482,12 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onGet"));
         }
-        _addEvent(ON_GET, then);
+        _lock();
+        try {
+            _addEvent(ON_GET, then);
+        } finally {
+            _unlock();
+        }
         return this;
     }
 
