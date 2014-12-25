@@ -10,7 +10,7 @@ import org.junit.Test;
  * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
-public class OncePromiseTest {
+public class OnceDeferredTest {
 
     //Test OnceDeferred which should throw various CompletionException if completion is attempted twice
 

@@ -92,7 +92,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
     }
 
     protected void _lock() {
-        while (!_lock.tryLock()) {}
+        _lock.lock();
     }
 
     protected void _unlock() {
@@ -274,6 +274,9 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                     exception.addSuppressed(e);
                 }
             }
+        }
+        if (exception != null) {
+            throw exception;
         }
     }
 
@@ -512,7 +515,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                         break loop;
                 }
                 _await();
-                _signalAll();
             } while (true);
             state = this.state;
             onGets = this._getEvents(ON_GET);
@@ -557,7 +559,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                 if (!_await(_tryTimeout(end), MILLISECONDS)) {
                     throw new TimeoutException(getTimeoutExceptionMessage());
                 }
-                _signalAll();
             } while (true);
             state = this.state;
             onGets = this._getEvents(ON_GET);
@@ -656,5 +657,15 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             case CANCELLED: return "CANCELLED";
             default: return "UNKNOWN";
         }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("DeferredImpl{");
+        sb.append("state=").append(state).append(" (").append(_stateToString(state)).append(")");
+        sb.append(", lock=").append(_lock);
+        sb.append(", condition=").append(_condition);
+        sb.append('}');
+        return sb.toString();
     }
 }

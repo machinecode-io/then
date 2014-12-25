@@ -48,7 +48,9 @@
         <version.org.jboss.logging.jboss-logging>3.1.4.GA</version.org.jboss.logging.jboss-logging>
 
         <version.junit.junit>4.10</version.junit.junit>
+
         <version.org.codehaus.mojo.findbugs-maven-plugin>3.0.0</version.org.codehaus.mojo.findbugs-maven-plugin>
+        <version.org.jacoco.jacoco-maven-plugin>0.7.2.201409121644</version.org.jacoco.jacoco-maven-plugin>
     </properties>
 
     <dependencyManagement>
@@ -74,6 +76,40 @@
     </dependencyManagement>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${version.org.jacoco.jacoco-maven-plugin}</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>${project.build.directory}/jacoco/unit-tests.exec</destFile>
+                                <append>false</append>
+                                <propertyName>surefireArgs</propertyName>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>generate-report</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <dataFile>${project.build.directory}/jacoco/unit-tests.exec</dataFile>
+                                <outputDirectory>${project.reporting.outputDirectory}/reports</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>

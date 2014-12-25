@@ -11,13 +11,13 @@ import org.junit.Test;
  * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
-public class ResolvedPromiseTest {
+public class ResolvedDeferredTest {
 
 
     @Test
     public void promiseCompleteTest() throws Exception {
         final Deferred<Object,Throwable,Void> pres = new ResolvedDeferred<>(null);
-        final Count res = new Count();
+        final Count<?,?,?> res = new Count<>();
         Assert.assertEquals(0, res.count);
         pres.onComplete(res);
         Assert.assertEquals(1, res.count);
@@ -25,7 +25,7 @@ public class ResolvedPromiseTest {
         Assert.assertEquals(1, res.count);
 
         final Deferred<Object,Throwable,Void> prej = new ResolvedDeferred<>(null);
-        final Count rej = new Count();
+        final Count<?,?,?> rej = new Count<>();
         Assert.assertEquals(0, rej.count);
         prej.onComplete(rej);
         Assert.assertEquals(1, rej.count);
