@@ -8,7 +8,10 @@ import io.machinecode.then.api.OnComplete;
 import io.machinecode.then.api.OnProgress;
 import io.machinecode.then.api.OnReject;
 import io.machinecode.then.api.OnResolve;
+import io.machinecode.then.api.Progress;
 import io.machinecode.then.api.Promise;
+import io.machinecode.then.api.Reject;
+import io.machinecode.then.api.Resolve;
 import org.jboss.logging.Logger;
 
 import java.util.LinkedList;
@@ -360,7 +363,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public Deferred<T,F,P> onResolve(final OnResolve<T> then) {
+    public Deferred<T,F,P> onResolve(final OnResolve<? super T> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onResolve"));
         }
@@ -387,7 +390,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public Deferred<T,F,P> onReject(final OnReject<F> then) {
+    public Deferred<T,F,P> onReject(final OnReject<? super F> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onReject"));
         }
@@ -467,7 +470,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public Deferred<T, F, P> onProgress(final OnProgress<P> then) {
+    public Deferred<T, F, P> onProgress(final OnProgress<? super P> then) {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onProgress"));
         }
@@ -492,6 +495,72 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             _unlock();
         }
         return this;
+    }
+
+    @Override
+    public <Tx> Promise<Tx,F,P> then(final Resolve<? super T,Tx,F,P> then) {
+        final DeferredImpl<Tx,F,P> next = new DeferredImpl<>();
+        final OnResolve<T> callback = new OnResolve<T>() {
+            @Override
+            public void resolve(final T that) {
+                then.resolve(that, next);
+            }
+        };
+        this.onResolve(callback)
+                .onReject(next)
+                .onProgress(next)
+                .onCancel(next)
+                .onGet(next);
+        return next;
+    }
+
+    @Override
+    public <Tx,Fx> Promise<Tx,Fx,P> then(final Reject<? super T,? super F,Tx,Fx,P> then) {
+        final DeferredImpl<Tx,Fx,P> next = new DeferredImpl<>();
+        final _OnReject<T,F> callback = new _OnReject<T,F>() {
+            @Override
+            public void resolve(final T that) {
+                then.resolve(that, next);
+            }
+
+            @Override
+            public void reject(final F fail) {
+                then.reject(fail, next);
+            }
+        };
+        this.onResolve(callback)
+                .onReject(callback)
+                .onProgress(next)
+                .onCancel(next)
+                .onGet(next);
+        return next;
+    }
+
+    @Override
+    public <Tx,Fx,Px> Promise<Tx,Fx,Px> then(final Progress<? super T,? super F,? super P,Tx,Fx,Px> then) {
+        final DeferredImpl<Tx,Fx,Px> next = new DeferredImpl<>();
+        final _OnProgress<T,F,P> callback = new _OnProgress<T,F,P>() {
+            @Override
+            public void resolve(final T that) {
+                then.resolve(that, next);
+            }
+
+            @Override
+            public void reject(final F fail) {
+                then.reject(fail, next);
+            }
+
+            @Override
+            public void progress(final P that) {
+                then.progress(that, next);
+            }
+        };
+        this.onResolve(callback)
+                .onReject(callback)
+                .onProgress(callback)
+                .onCancel(next)
+                .onGet(next);
+        return next;
     }
 
     @Override
@@ -668,4 +737,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         sb.append('}');
         return sb.toString();
     }
+
+    private interface _OnReject<T,F> extends OnResolve<T>, OnReject<F> {}
+    private interface _OnProgress<T,F,P> extends OnResolve<T>, OnReject<F>, OnProgress<P> {}
 }

@@ -79,16 +79,15 @@ public interface Deferred<T,F,P> extends OnResolve<T>, OnReject<F>, OnProgress<P
     @Override
     void progress(final P that) throws ListenerException;
 
+    /**
+     * {@inheritDoc}
+     */
+    Deferred<T,F,P> onResolve(final OnResolve<? super T> then);
 
     /**
      * {@inheritDoc}
      */
-    Deferred<T,F,P> onResolve(final OnResolve<T> then);
-
-    /**
-     * {@inheritDoc}
-     */
-    Deferred<T,F,P> onReject(final OnReject<F> then);
+    Deferred<T,F,P> onReject(final OnReject<? super F> then);
 
     /**
      * {@inheritDoc}
@@ -103,7 +102,7 @@ public interface Deferred<T,F,P> extends OnResolve<T>, OnReject<F>, OnProgress<P
     /**
      * {@inheritDoc}
      */
-    Deferred<T,F,P> onProgress(final OnProgress<P> then);
+    Deferred<T,F,P> onProgress(final OnProgress<? super P> then);
 
     /**
      * {@inheritDoc}

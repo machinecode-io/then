@@ -55,7 +55,7 @@ public interface Promise<T,F,P> extends OnCancel, Future<T> {
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
-    Promise<T,F,P> onResolve(final OnResolve<T> then);
+    Promise<T,F,P> onResolve(final OnResolve<? super T> then);
 
     /**
      * <p>Triggered when {@link Deferred#reject(Object)} is the first terminal method called.</p>
@@ -63,7 +63,7 @@ public interface Promise<T,F,P> extends OnCancel, Future<T> {
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
-    Promise<T,F,P> onReject(final OnReject<F> then);
+    Promise<T,F,P> onReject(final OnReject<? super F> then);
 
     /**
      * <p>Triggered when {@link #cancel(boolean)} is the first terminal method called.</p>
@@ -94,7 +94,7 @@ public interface Promise<T,F,P> extends OnCancel, Future<T> {
      * @param then Callback to be executed
      * @return This instance for method chaining.
      */
-    Promise<T,F,P> onProgress(final OnProgress<P> then);
+    Promise<T,F,P> onProgress(final OnProgress<? super P> then);
 
     /**
      * <p>Triggered when {@link #get(long, java.util.concurrent.TimeUnit)} or {@link #get()} is called.
@@ -108,4 +108,60 @@ public interface Promise<T,F,P> extends OnCancel, Future<T> {
      * @return This instance for method chaining.
      */
     Promise<T,F,P> onGet(final Future<?> then);
+
+    /**
+     * <p>Return a new promise that will have the resolved value of the original {@link Promise} converted to
+     * the new type using the {@link Resolve} parameter.</p>
+     *
+     * <p>The new promise MUST end in the same state as the {@link Promise} that created it if the
+     * {@link Deferred} reaches a terminal state through either of {@link Deferred#reject(Object)} or
+     * {@link Deferred#cancel(boolean)}. If {@link Deferred#resolve(Object)} is called then this promise
+     * may reach any terminal state from a call to the {@link Deferred} provided to {@link Resolve#resolve(Object, Deferred)}.</p>
+     *
+     * @param then A processor to convert the resolved value from type {@code T} to type {@code Tx}.
+     * @param <Tx> Type of the new promise {@link Deferred#resolve(Object)}.
+     * @return A new promise with resolved type {@code Tx}.
+     * @see Resolve
+     */
+    <Tx> Promise<Tx,F,P> then(final Resolve<? super T,Tx,F,P> then);
+
+    /**
+     * <p>Return a new promise that will have the resolved value of the original {@link Promise} converted to
+     * the new type using {@literal then}.</p>
+     *
+     * <p>The new promise MUST end in the same state as the {@link Promise} that created it if the
+     * {@link Deferred} reaches a terminal state through {@link Deferred#cancel(boolean)}. If
+     * {@link Deferred#resolve(Object)} or {@link Deferred#reject(Object)} is called then this promise
+     * may reach any terminal state from a call to the {@link Deferred} provided to either
+     * {@link Reject#resolve(Object, Deferred)} or {@link Reject#reject(Object, Deferred)} respectively.</p>
+     *
+     * @param then A processor to convert a resolved value from type {@code T} to type {@code Tx} or
+     *             rejected value from {@code F} to {@code Fx}.
+     * @param <Tx> Type of the new promise {@link Deferred#resolve(Object)}.
+     * @param <Fx> Type of the new promise {@link Deferred#reject(Object)}.
+     * @return A new promise with resolved type {@code Tx} and rejected type {@code Fx}.
+     * @see Reject
+     */
+    <Tx,Fx> Promise<Tx,Fx,P> then(final Reject<? super T,? super F,Tx,Fx,P> then);
+
+    /**
+     * <p>Return a new promise that will have the resolved value of the original {@link Promise} converted to
+     * the new type using {@code then}.</p>
+     *
+     * <p>The new promise MUST end in the same state as the {@link Promise} that created it if the
+     * {@link Deferred} reaches a terminal state through {@link Deferred#cancel(boolean)}. If
+     * {@link Deferred#resolve(Object)} or {@link Deferred#reject(Object)} is called then this promise
+     * SHOULD reach a terminal state from a call to the {@link Deferred} provided to either
+     * {@link Progress#resolve(Object, Deferred)} or {@link Progress#reject(Object, Deferred)} respectively.
+     * It MAY reach a terminal state through {@link Progress#progress(Object, Deferred)}.</p>
+     *
+     * @param then A processor to convert a resolved value from type {@code T} to type {@code Tx}, rejected
+     *             value from {@code F} to {@code Fx} or progress value from {@code P} to {@code Px}.
+     * @param <Tx> Type of the new promise {@link Deferred#resolve(Object)}.
+     * @param <Fx> Type of the new promise {@link Deferred#reject(Object)}.
+     * @param <Px> Type of the new promise {@link Deferred#progress(Object)}.
+     * @return A new promise with resolved type {@code Tx}, rejected type {@code Fx} and progress type {@code Px}.
+     * @see Progress
+     */
+    <Tx,Fx,Px> Promise<Tx,Fx,Px> then(final Progress<? super T,? super F,? super P,Tx,Fx,Px> then);
 }

@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @since 1.0
  */
 @SuppressWarnings("unchecked")
-public class AllDeferredTest  extends Assert {
+public class SomeDeferredTest extends Assert {
     
     @Test
     public void arrayResolveTest() throws Exception {
@@ -24,7 +24,7 @@ public class AllDeferredTest  extends Assert {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<List<Object>,Throwable,Void> pres = new AllDeferred<>(ares);
+        final Promise<List<Object>,Throwable,Void> pres = new SomeDeferred<>(ares);
         final Count<?,?,?> res = new Count<>();
         final Object[] results = new Object[] { new Object(), new Object(), new Object() };
         pres.onComplete(res);
@@ -56,14 +56,14 @@ public class AllDeferredTest  extends Assert {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<List<Object>, Throwable, Object> prej = new AllDeferred<>(arej);
+        final Promise<List<Object>, Throwable, Object> prej = new SomeDeferred<>(arej);
         final Count<?,?,?> rej = new Count<>();
         prej.onComplete(rej);
         assertEquals(0, rej.count);
         arej[0].reject(new Throwable());
-        assertEquals(1, rej.count);
+        assertEquals(0, rej.count);
         arej[1].reject(new Throwable());
-        assertEquals(1, rej.count);
+        assertEquals(0, rej.count);
         arej[2].reject(new Throwable());
         assertEquals(1, rej.count);
     }
@@ -75,14 +75,14 @@ public class AllDeferredTest  extends Assert {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<List<Object>, Throwable, Object> pcan = new AllDeferred<>(acan);
+        final Promise<List<Object>, Throwable, Object> pcan = new SomeDeferred<>(acan);
         final Count<?,?,?> can = new Count<>();
         pcan.onComplete(can);
         assertEquals(0, can.count);
         acan[0].cancel(true);
-        assertEquals(1, can.count);
+        assertEquals(0, can.count);
         acan[1].cancel(true);
-        assertEquals(1, can.count);
+        assertEquals(0, can.count);
         acan[2].cancel(true);
         assertEquals(1, can.count);
     }
@@ -94,7 +94,7 @@ public class AllDeferredTest  extends Assert {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<List<Object>,Throwable,Void> pres = new AllDeferred<>(Arrays.<Promise<Object,Throwable,?>>asList(ares));
+        final Promise<List<Object>,Throwable,Void> pres = new SomeDeferred<>(Arrays.<Promise<Object,Throwable,?>>asList(ares));
         final Count<?,?,?> res = new Count<>();
         final Object[] results = new Object[] { new Object(), new Object(), new Object() };
         pres.onComplete(res);
@@ -126,14 +126,14 @@ public class AllDeferredTest  extends Assert {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<List<Object>,Throwable,Object> prej = new AllDeferred<>(Arrays.<Promise<Object,Throwable,?>>asList(arej));
+        final Promise<List<Object>,Throwable,Object> prej = new SomeDeferred<>(Arrays.<Promise<Object,Throwable,?>>asList(arej));
         final Count<?,?,?> rej = new Count<>();
         prej.onComplete(rej);
         assertEquals(0, rej.count);
         arej[0].reject(new Throwable());
-        assertEquals(1, rej.count);
+        assertEquals(0, rej.count);
         arej[1].reject(new Throwable());
-        assertEquals(1, rej.count);
+        assertEquals(0, rej.count);
         arej[2].reject(new Throwable());
         assertEquals(1, rej.count);
     }
@@ -145,14 +145,14 @@ public class AllDeferredTest  extends Assert {
                 new DeferredImpl<Object,Throwable,Void>(),
                 new DeferredImpl<Object,Throwable,Void>()
         };
-        final Promise<List<Object>,Throwable,Object> pcan = new AllDeferred<>(Arrays.<Promise<Object,Throwable,?>>asList(acan));
+        final Promise<List<Object>,Throwable,Object> pcan = new SomeDeferred<>(Arrays.<Promise<Object,Throwable,?>>asList(acan));
         final Count<?,?,?> can = new Count<>();
         pcan.onComplete(can);
         assertEquals(0, can.count);
         acan[0].cancel(true);
-        assertEquals(1, can.count);
+        assertEquals(0, can.count);
         acan[1].cancel(true);
-        assertEquals(1, can.count);
+        assertEquals(0, can.count);
         acan[2].cancel(true);
         assertEquals(1, can.count);
     }
@@ -160,19 +160,19 @@ public class AllDeferredTest  extends Assert {
     @Test
     public void emptyArgsArrayTest() throws Exception {
         final DeferredImpl<Object,Throwable,Void>[] ares = new DeferredImpl[] {};
-        final Promise<List<Object>,Throwable,Void> pres = new AllDeferred<>(ares);
+        final Promise<List<Object>,Throwable,Void> pres = new SomeDeferred<>(ares);
         final Count<?,?,?> res = new Count<>();
         pres.onComplete(res);
         assertEquals(1, res.count);
-        assertTrue(pres.isResolved());
+        assertTrue(pres.isRejected());
     }
 
     @Test
     public void emptyArgsCollectionTest() throws Exception {
-        final Promise<List<Object>,Throwable,Void> pres = new AllDeferred<>(Collections.<Promise<Object,Throwable,?>>emptyList());
+        final Promise<List<Object>,Throwable,Void> pres = new SomeDeferred<>(Collections.<Promise<Object,Throwable,?>>emptyList());
         final Count<?,?,?> res = new Count<>();
         pres.onComplete(res);
         assertEquals(1, res.count);
-        assertTrue(pres.isResolved());
+        assertTrue(pres.isRejected());
     }
 }

@@ -11,33 +11,31 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * <p>A promise that will be resolved with a list of the values of all the promised
- * passed to it if they are all resolved.</p>
+ * <p>A promise that will be resolved with the values of each of the resolved promises
+ * passed in once all the promises are complete. If none complete it will be rejected.</p>
  *
  * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
-public class AllDeferred<T,F,P> extends DeferredImpl<List<T>,F,P> {
+public class SomeDeferred<T,F,P> extends DeferredImpl<List<T>,F,P> {
 
-    public AllDeferred(final Collection<? extends Promise<T,F,?>> promises) {
+    public SomeDeferred(final Collection<? extends Promise<T,?,?>> promises) {
         if (promises.isEmpty()) {
-            resolve(null);
+            reject(null);
             return;
         }
         final Callback callback = new Callback(promises.size());
-        for (final Promise<T,F,?> promise : promises) {
+        for (final Promise<T,?,?> promise : promises) {
             promise.onResolve(callback)
-                    .onReject(this)
-                    .onCancel(this)
                     .onComplete(callback);
         }
     }
 
-    public AllDeferred(final Promise<T,F,?>... promises) {
+    public SomeDeferred(final Promise<T,?,?>... promises) {
         this(Arrays.asList(promises));
     }
 
-    private class Callback implements OnComplete, OnResolve<T> {
+    private class Callback implements OnResolve<T>, OnComplete {
         final AtomicInteger count = new AtomicInteger(0);
         final int size;
         final List<T> ret;
@@ -55,7 +53,11 @@ public class AllDeferred<T,F,P> extends DeferredImpl<List<T>,F,P> {
         @Override
         public void complete(final int state) {
             if (count.incrementAndGet() == size) {
-                AllDeferred.this.resolve(ret);
+                if (ret.isEmpty()) {
+                    reject(null);
+                } else {
+                    SomeDeferred.this.resolve(ret);
+                }
             }
         }
     }

@@ -839,18 +839,14 @@ public class DeferredImplTest extends UnitTest {
         assertSame(d, d.promise());
     }
 
-    @Test
-    public void timeoutTest() {
+    @Test(expected = TimeoutException.class)
+    public void timeoutTest() throws TimeoutException {
         final DeferredImpl<Void,Void,Void> d = new DeferredImpl<>();
-        final long start = System.currentTimeMillis();
         try {
             d.get(10, TimeUnit.MILLISECONDS);
             fail();
         } catch (final InterruptedException | ExecutionException e) {
             fail();
-        } catch (final TimeoutException e) {
-            final long end = System.currentTimeMillis();
-            assertTrue(end - start < 12);
         }
     }
 

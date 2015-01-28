@@ -1,7 +1,5 @@
 package io.machinecode.then.core;
 
-import io.machinecode.then.api.ExecutablePromise;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
@@ -11,7 +9,7 @@ import java.util.concurrent.TimeUnit;
  * @author <a href="mailto:brent.n.douglas@gmail.com">Brent Douglas</a>
  * @since 1.0
  */
-public class FutureDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements ExecutablePromise<T,Throwable,P>, Callable<T>, Runnable {
+public class FutureDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements Callable<T>, Runnable {
 
     protected final Future<? extends T> future;
     protected final long timeout;
@@ -56,12 +54,10 @@ public class FutureDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements 
                 : get(timeout, unit);
     }
 
-    @Override
     public Runnable asRunnable() {
         return this;
     }
 
-    @Override
     public Callable<T> asCallable() {
         return this;
     }
