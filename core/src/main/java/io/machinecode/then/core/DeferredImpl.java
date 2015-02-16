@@ -21,8 +21,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -50,8 +48,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
     protected T value;
     protected F failure;
 
-    private final ReentrantLock _lock = new ReentrantLock();
-    private final Condition _condition = _lock.newCondition();
+    protected final Object _lock = new Object();
 
     private Event[] _events;
     private int _pos = 0;
@@ -92,26 +89,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
 
     public DeferredImpl(final int hint) {
         this._events = new Event[hint];
-    }
-
-    protected void _lock() {
-        _lock.lock();
-    }
-
-    protected void _unlock() {
-        _lock.unlock();
-    }
-
-    protected void _await() throws InterruptedException {
-        _condition.await();
-    }
-
-    protected boolean _await(final long timeout, final TimeUnit unit) throws InterruptedException {
-        return _condition.await(timeout, unit);
-    }
-
-    protected void _signalAll() {
-        _condition.signalAll();
     }
 
     protected boolean setValue(final T value) {
@@ -160,16 +137,13 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         final List<OnResolve<T>> onResolves;
         final List<OnComplete> onCompletes;
         final int state;
-        _lock();
-        try {
+        synchronized (_lock) {
             if (setValue(value)) {
                 return;
             }
             onResolves = this._getEvents(ON_RESOLVE);
             onCompletes = this._getEvents(ON_COMPLETE);
             state = this.state;
-        } finally {
-            _unlock();
         }
         ListenerException exception = null;
         for (final OnResolve<T> on : onResolves) {
@@ -194,11 +168,8 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                 }
             }
         }
-        _lock();
-        try {
-            _signalAll();
-        } finally {
-            _unlock();
+        synchronized (_lock) {
+            _lock.notifyAll();
         }
         if (exception != null) {
             throw exception;
@@ -211,16 +182,13 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         final List<OnReject<F>> onRejects;
         final List<OnComplete> onCompletes;
         final int state;
-        _lock();
-        try {
+        synchronized (_lock) {
             if (setFailure(failure)) {
                 return;
             }
             onRejects = this._getEvents(ON_REJECT);
             onCompletes = this._getEvents(ON_COMPLETE);
             state = this.state;
-        } finally {
-            _unlock();
         }
         ListenerException exception = null;
         for (final OnReject<F> then : onRejects) {
@@ -245,11 +213,8 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                 }
             }
         }
-        _lock();
-        try {
-            _signalAll();
-        } finally {
-            _unlock();
+        synchronized (_lock) {
+            _lock.notifyAll();
         }
         if (exception != null) {
             throw exception;
@@ -260,11 +225,8 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
     public void progress(final P that) {
         log().tracef(getProgressLogMessage(), that);
         final List<OnProgress<P>> onProgresses;
-        _lock();
-        try {
+        synchronized (_lock) {
             onProgresses = this._getEvents(ON_PROGRESS);
-        } finally {
-            _unlock();
         }
         ListenerException exception = null;
         for (final OnProgress<P> then : onProgresses) {
@@ -289,16 +251,13 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         final List<OnCancel> onCancels;
         final List<OnComplete> onCompletes;
         final int state;
-        _lock();
-        try {
+        synchronized (_lock) {
             if (setCancelled()) {
                 return isCancelled();
             }
             onCancels = this._getEvents(ON_CANCEL);
             onCompletes = this._getEvents(ON_COMPLETE);
             state = this.state;
-        } finally {
-            _unlock();
         }
         ListenerException exception = null;
         for (final OnCancel then : onCancels) {
@@ -323,11 +282,8 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                 }
             }
         }
-        _lock();
-        try {
-            _signalAll();
-        } finally {
-            _unlock();
+        synchronized (_lock) {
+            _lock.notifyAll();
         }
         if (exception != null) {
             throw exception;
@@ -368,8 +324,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onResolve"));
         }
         boolean run = false;
-        _lock();
-        try {
+        synchronized (_lock) {
             switch (this.state) {
                 case REJECTED:
                 case CANCELLED:
@@ -380,8 +335,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                 default:
                     _addEvent(ON_RESOLVE, then);
             }
-        } finally {
-            _unlock();
         }
         if (run) {
             then.resolve(this.value);
@@ -395,8 +348,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onReject"));
         }
         boolean run = false;
-        _lock();
-        try {
+        synchronized (_lock) {
             switch (this.state) {
                 case RESOLVED:
                 case CANCELLED:
@@ -407,8 +359,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                 default:
                     _addEvent(ON_REJECT, then);
             }
-        } finally {
-            _unlock();
         }
         if (run) {
             then.reject(this.failure);
@@ -422,8 +372,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onCancel"));
         }
         boolean run = false;
-        _lock();
-        try {
+        synchronized (_lock) {
             switch (this.state) {
                 case RESOLVED:
                 case REJECTED:
@@ -434,8 +383,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                 default:
                     _addEvent(ON_CANCEL, then);
             }
-        } finally {
-            _unlock();
         }
         if (run) {
             then.cancel(true);
@@ -449,8 +396,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onComplete"));
         }
         boolean run = false;
-        _lock();
-        try {
+        synchronized (_lock) {
             switch (this.state) {
                 case REJECTED:
                 case CANCELLED:
@@ -460,8 +406,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                 default:
                     _addEvent(ON_COMPLETE, then);
             }
-        } finally {
-            _unlock();
         }
         if (run) {
             then.complete(this.state);
@@ -474,11 +418,8 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onProgress"));
         }
-        _lock();
-        try {
+        synchronized (_lock) {
             _addEvent(ON_PROGRESS, then);
-        } finally {
-            _unlock();
         }
         return this;
     }
@@ -488,11 +429,8 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         if (then == null) {
             throw new IllegalArgumentException(Messages.format("THEN-000400.promise.argument.required", "onGet"));
         }
-        _lock();
-        try {
+        synchronized (_lock) {
             _addEvent(ON_GET, then);
-        } finally {
-            _unlock();
         }
         return this;
     }
@@ -574,8 +512,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         }
         final List<Future<?>> onGets;
         final int state;
-        _lock();
-        try {
+        synchronized (_lock) {
             loop: do {
                 switch (this.state) {
                     case CANCELLED:
@@ -583,12 +520,10 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                     case RESOLVED:
                         break loop;
                 }
-                _await();
+                _lock.wait();
             } while (true);
             state = this.state;
             onGets = this._getEvents(ON_GET);
-        } finally {
-            _unlock();
         }
         switch (state) {
             case CANCELLED:
@@ -616,8 +551,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         final List<Future<?>> onGets;
         final long end = System.currentTimeMillis() + unit.toMillis(timeout);
         final byte state;
-        _lock();
-        try {
+        synchronized (_lock) {
             loop: do {
                 switch (this.state) {
                     case CANCELLED:
@@ -625,14 +559,10 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                     case RESOLVED:
                         break loop;
                 }
-                if (!_await(_tryTimeout(end), MILLISECONDS)) {
-                    throw new TimeoutException(getTimeoutExceptionMessage());
-                }
+                _lock.wait(_tryTimeout(end));
             } while (true);
             state = this.state;
             onGets = this._getEvents(ON_GET);
-        } finally {
-            _unlock();
         }
         switch (state) {
             case CANCELLED:
@@ -733,7 +663,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
         final StringBuilder sb = new StringBuilder("DeferredImpl{");
         sb.append("state=").append(state).append(" (").append(_stateToString(state)).append(")");
         sb.append(", lock=").append(_lock);
-        sb.append(", condition=").append(_condition);
         sb.append('}');
         return sb.toString();
     }
