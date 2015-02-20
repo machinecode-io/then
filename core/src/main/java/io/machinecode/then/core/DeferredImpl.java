@@ -711,7 +711,6 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
     public String toString() {
         final StringBuilder sb = new StringBuilder("DeferredImpl{");
         sb.append("state=").append(state).append(" (").append(_stateToString(state)).append(")");
-        sb.append(", lock=").append(lock);
         sb.append('}');
         return sb.toString();
     }
