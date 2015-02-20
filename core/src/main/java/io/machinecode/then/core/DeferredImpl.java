@@ -752,6 +752,11 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
                     }
                     return (T)events[i++].value;
                 }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException(Messages.get("THEN-000403.promise.interator.remove"));
+                }
             };
         }
     }
