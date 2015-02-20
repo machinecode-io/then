@@ -1,5 +1,7 @@
 package io.machinecode.then.core;
 
+import io.machinecode.then.api.Deferred;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.Future;
@@ -29,21 +31,7 @@ public class FutureDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements 
 
     @Override
     public void run() {
-        final T that;
-        try {
-            if (this.unit == null) {
-                that = future.get();
-            } else {
-                that = future.get(timeout, unit);
-            }
-        } catch (final CancellationException e) {
-            cancel(true);
-            return;
-        } catch (final Throwable e) {
-            reject(e);
-            return;
-        }
-        resolve(that);
+        getFuture(future, this, timeout, unit);
     }
 
     @Override
@@ -60,5 +48,23 @@ public class FutureDeferred<T,P> extends DeferredImpl<T,Throwable,P> implements 
 
     public Callable<T> asCallable() {
         return this;
+    }
+
+    public static <T,P> void getFuture(final Future<? extends T> future, final Deferred<T,Throwable,P> def, final long timeout, final TimeUnit unit) {
+        final T that;
+        try {
+            if (unit == null) {
+                that = future.get();
+            } else {
+                that = future.get(timeout, unit);
+            }
+        } catch (final CancellationException e) {
+            def.cancel(true);
+            return;
+        } catch (final Throwable e) {
+            def.reject(e);
+            return;
+        }
+        def.resolve(that);
     }
 }
