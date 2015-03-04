@@ -7,6 +7,8 @@ import io.machinecode.then.api.OnReject;
 import io.machinecode.then.api.OnResolve;
 import org.junit.Test;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -927,6 +929,89 @@ public class DeferredImplTest extends UnitTest {
             final String r = d.toString();
             assertNotNull(r);
             assertTrue(r.contains("CANCELLED"));
+        }
+    }
+
+    @Test
+    public void iteratorTest() {
+        final TestItDef<Void,Void,Void> d = new TestItDef<>();
+        d.test();
+        d.testNext();
+        d.testRemove();
+    }
+
+    private static class TestItDef<T,F,P> extends DeferredImpl<T,F,P> {
+
+        private TestItDef() {
+            this.onReject(new OnReject<F>() {
+                @Override
+                public void reject(final F fail) {
+                    fail();
+                }
+            }).onResolve(new OnResolve<T>() {
+                @Override
+                public void resolve(final T that) {
+                    fail();
+                }
+            }).onProgress(new OnProgress<P>() {
+                @Override
+                public void progress(final P that) {
+                    fail();
+                }
+            }).onCancel(new OnCancel() {
+                @Override
+                public boolean cancel(final boolean mayInterrupt) {
+                    fail();
+                    return false;
+                }
+            }).onComplete(new OnComplete() {
+                @Override
+                public void complete(final int state) {
+                    //
+                }
+            }).onComplete(new OnComplete() {
+                @Override
+                public void complete(final int state) {
+                    //
+                }
+            });
+        }
+
+        public void test() {
+            boolean found = false;
+            for (final OnComplete on : this.<OnComplete>getEvents(ON_COMPLETE)) {
+                assertNotNull(on);
+                found = true;
+            }
+            if (!found) {
+                fail();
+            }
+        }
+
+        public void testNext() {
+            final Iterator<OnComplete> it = this.<OnComplete>getEvents(ON_COMPLETE).iterator();
+            int i = 0;
+            while (it.hasNext()) {
+                i++;
+                it.next();
+            }
+            assertEquals(2, i);
+            try {
+                it.next();
+                fail();
+            } catch (final NoSuchElementException e) {
+                //
+            }
+        }
+
+        public void testRemove() {
+            final Iterator<OnComplete> it = this.<OnComplete>getEvents(ON_COMPLETE).iterator();
+            try {
+                it.remove();
+                fail();
+            } catch (final Exception e) {
+                //
+            }
         }
     }
 }
