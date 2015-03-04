@@ -148,32 +148,16 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             if (event.event != ON_RESOLVE) {
                 continue;
             }
-            try {
-                @SuppressWarnings("unchecked")
-                final OnResolve<T> on = ((OnResolve<T>)event.value);
-                on.resolve(this.value);
-            } catch (final Throwable e) {
-                if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000300.promise.on.resolve.exception"), e);
-                } else {
-                    exception.addSuppressed(e);
-                }
-            }
+            @SuppressWarnings("unchecked")
+            final OnResolve<T> on = ((OnResolve<T>)event.value);
+            exception = _callOnResolve(exception, on);
         }
         for (int i = 0; i < length; ++i) {
             final Event event = events[i];
             if (event.event != ON_COMPLETE) {
                 continue;
             }
-            try {
-                ((OnComplete)event.value).complete(state);
-            } catch (final Throwable e) {
-                if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000303.promise.on.complete.exception"), e);
-                } else {
-                    exception.addSuppressed(e);
-                }
-            }
+            exception = _callOnComplete(exception, ((OnComplete) event.value), state);
         }
         synchronized (lock) {
             lock.notifyAll();
@@ -203,32 +187,16 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             if (event.event != ON_REJECT) {
                 continue;
             }
-            try {
-                @SuppressWarnings("unchecked")
-                final OnReject<F> on = ((OnReject<F>)event.value);
-                on.reject(this.failure);
-            } catch (final Throwable e) {
-                if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000301.promise.on.reject.exception"), e);
-                } else {
-                    exception.addSuppressed(e);
-                }
-            }
+            @SuppressWarnings("unchecked")
+            final OnReject<F> on = ((OnReject<F>)event.value);
+            exception = _callOnReject(exception, on);
         }
         for (int i = 0; i < length; ++i) {
             final Event event = events[i];
             if (event.event != ON_COMPLETE) {
                 continue;
             }
-            try {
-                ((OnComplete)event.value).complete(state);
-            } catch (final Throwable e) {
-                if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000303.promise.on.complete.exception"), e);
-                } else {
-                    exception.addSuppressed(e);
-                }
-            }
+            exception = _callOnComplete(exception, (OnComplete) event.value, state);
         }
         synchronized (lock) {
             lock.notifyAll();
@@ -253,17 +221,9 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             if (event.event != ON_PROGRESS) {
                 continue;
             }
-            try {
-                @SuppressWarnings("unchecked")
-                final OnProgress<P> on = ((OnProgress<P>)event.value);
-                on.progress(that);
-            } catch (final Throwable e) {
-                if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000304.promise.on.progress.exception"), e);
-                } else {
-                    exception.addSuppressed(e);
-                }
-            }
+            @SuppressWarnings("unchecked")
+            final OnProgress<P> on = ((OnProgress<P>)event.value);
+            exception = _callOnProgress(exception, on, that);
         }
         if (exception != null) {
             throw exception;
@@ -271,7 +231,7 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
     }
 
     @Override
-    public boolean cancel(final boolean mayInterruptIfRunning) throws ListenerException {
+    public boolean cancel(final boolean interrupt) throws ListenerException {
         log().tracef(getCancelLogMessage());
         final Event[] events;
         final int length;
@@ -290,30 +250,14 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             if (event.event != ON_CANCEL) {
                 continue;
             }
-            try {
-                ((OnCancel)event.value).cancel(mayInterruptIfRunning);
-            } catch (final Throwable e) {
-                if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000302.promise.on.cancel.exception"), e);
-                } else {
-                    exception.addSuppressed(e);
-                }
-            }
+            exception = _callOnCancel(exception, (OnCancel) event.value, interrupt);
         }
         for (int i = 0; i < length; ++i) {
             final Event event = events[i];
             if (event.event != ON_COMPLETE) {
                 continue;
             }
-            try {
-                ((OnComplete)event.value).complete(state);
-            } catch (final Throwable e) {
-                if (exception == null) {
-                    exception = new ListenerException(Messages.format("THEN-000303.promise.on.complete.exception"), e);
-                } else {
-                    exception.addSuppressed(e);
-                }
-            }
+            exception = _callOnComplete(exception, (OnComplete) event.value, state);
         }
         synchronized (lock) {
             lock.notifyAll();
@@ -560,17 +504,23 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             events = this.events;
             length = this.length;
         }
-        switch (state) {
-            case CANCELLED:
-                throw _onGet(events, length, new CancellationException(Messages.format("THEN-000202.promise.cancelled")));
-            case REJECTED:
-                final String msg = Messages.format("THEN-000201.promise.rejected");
-                throw _onGet(events, length, new ExecutionException(msg, _getFailureCause(msg)));
-            case RESOLVED:
-                _onGet(events, length, null);
-                return value;
-            default:
-                throw new IllegalStateException(Messages.format("THEN-000200.promise.illegal.state", _stateToString(state)));
+        try {
+            switch (state) {
+                case CANCELLED:
+                    throw _onGet(events, length, new CancellationException(Messages.format("THEN-000202.promise.cancelled")));
+                case REJECTED:
+                    final String msg = Messages.format("THEN-000201.promise.rejected");
+                    throw _onGet(events, length, new ExecutionException(msg, _getFailureCause(msg)));
+                case RESOLVED:
+                    _onGet(events, length, null);
+                    return value;
+                default:
+                    throw new IllegalStateException(Messages.format("THEN-000200.promise.illegal.state", _stateToString(state)));
+            }
+        } catch (final InterruptedException | ExecutionException | RuntimeException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 
@@ -601,56 +551,139 @@ public class DeferredImpl<T,F,P> implements Deferred<T,F,P> {
             events = this.events;
             length = this.length;
         }
-        switch (state) {
-            case CANCELLED:
-                throw _onTimedGet(events, length, end, new CancellationException(Messages.format("THEN-000202.promise.cancelled")));
-            case REJECTED:
-                final String msg = Messages.format("THEN-000201.promise.rejected");
-                throw _onTimedGet(events, length, end, new ExecutionException(msg, _getFailureCause(msg)));
-            case RESOLVED:
-                _onTimedGet(events, length, end, null);
-                return value;
-            default:
-                throw new IllegalStateException(Messages.format("THEN-000200.promise.illegal.state", _stateToString(state)));
+        try {
+            switch (state) {
+                case CANCELLED:
+                    throw _onTimedGet(events, length, end, new CancellationException(Messages.format("THEN-000202.promise.cancelled")));
+                case REJECTED:
+                    final String msg = Messages.format("THEN-000201.promise.rejected");
+                    throw _onTimedGet(events, length, end, new ExecutionException(msg, _getFailureCause(msg)));
+                case RESOLVED:
+                    _onTimedGet(events, length, end, null);
+                    return value;
+                default:
+                    throw new IllegalStateException(Messages.format("THEN-000200.promise.illegal.state", _stateToString(state)));
+            }
+        } catch (final InterruptedException | ExecutionException | TimeoutException | RuntimeException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 
-    protected <X extends Exception> X _onGet(final Event[] events, final int length, final X exception) throws ExecutionException, InterruptedException {
-        for (int i = 0; i < length; ++i) {
-            final Event event = events[i];
-            if (event.event != ON_GET) {
-                continue;
-            }
-            try {
-                @SuppressWarnings("unchecked")
-                final Future<?> on = ((Future<?>)event.value);
-                on.get();
-            } catch (final Throwable e) {
-                if (exception != null) {
-                    exception.addSuppressed(e);
-                }
-                log.tracef(e, Messages.get("THEN-000401.promise.get.exception"));
+    protected ListenerException _callOnResolve(ListenerException exception, final OnResolve<T> on) {
+        try {
+            on.resolve(this.value);
+        } catch (final Throwable e) {
+            if (exception == null) {
+                exception = new ListenerException(Messages.format("THEN-000300.promise.on.resolve.exception"), e);
+            } else {
+                exception.addSuppressed(e);
             }
         }
         return exception;
     }
 
-    protected <X extends Exception> X _onTimedGet(final Event[] events, final int length, final long end, final X exception) throws TimeoutException, ExecutionException, InterruptedException {
+    protected ListenerException _callOnComplete(ListenerException exception, final OnComplete on, final int state) {
+        try {
+            on.complete(state);
+        } catch (final Throwable e) {
+            if (exception == null) {
+                exception = new ListenerException(Messages.format("THEN-000303.promise.on.complete.exception"), e);
+            } else {
+                exception.addSuppressed(e);
+            }
+        }
+        return exception;
+    }
+
+    protected ListenerException _callOnReject(ListenerException exception, final OnReject<F> on) {
+        try {
+            on.reject(this.failure);
+        } catch (final Throwable e) {
+            if (exception == null) {
+                exception = new ListenerException(Messages.format("THEN-000301.promise.on.reject.exception"), e);
+            } else {
+                exception.addSuppressed(e);
+            }
+        }
+        return exception;
+    }
+
+    protected ListenerException _callOnCancel(ListenerException exception, final OnCancel on, final boolean interrupt) {
+        try {
+            on.cancel(interrupt);
+        } catch (final Throwable e) {
+            if (exception == null) {
+                exception = new ListenerException(Messages.format("THEN-000302.promise.on.cancel.exception"), e);
+            } else {
+                exception.addSuppressed(e);
+            }
+        }
+        return exception;
+    }
+
+    protected ListenerException _callOnProgress(ListenerException exception, final OnProgress<P> on, final P that) {
+        try {
+            on.progress(that);
+        } catch (final Throwable e) {
+            if (exception == null) {
+                exception = new ListenerException(Messages.format("THEN-000304.promise.on.progress.exception"), e);
+            } else {
+                exception.addSuppressed(e);
+            }
+        }
+        return exception;
+    }
+
+    protected Exception _callOnGet(Exception exception, final Future<?> on) {
+        try {
+            on.get();
+        } catch (final Throwable e) {
+            if (exception == null) {
+                exception = new ListenerException(Messages.format("THEN-000401.promise.get.exception"), e);
+            } else {
+                exception.addSuppressed(e);
+            }
+        }
+        return exception;
+    }
+
+    protected Exception _callOnTimedGet(Exception exception, final Future<?> on, final long end) {
+        try {
+            on.get(_tryTimeout(end), MILLISECONDS);
+        } catch (final Throwable e) {
+            if (exception == null) {
+                exception = new ListenerException(Messages.format("THEN-000401.promise.get.exception"), e);
+            } else {
+                exception.addSuppressed(e);
+            }
+        }
+        return exception;
+    }
+
+    protected Exception _onGet(final Event[] events, final int length, Exception exception) throws Exception {
         for (int i = 0; i < length; ++i) {
             final Event event = events[i];
             if (event.event != ON_GET) {
                 continue;
             }
-            try {
-                @SuppressWarnings("unchecked")
-                final Future<?> on = ((Future<?>)event.value);
-                on.get(_tryTimeout(end), MILLISECONDS);
-            } catch (final Throwable e) {
-                if (exception != null) {
-                    exception.addSuppressed(e);
-                }
-                log.tracef(e, Messages.get("THEN-000401.promise.get.exception"));
+            @SuppressWarnings("unchecked")
+            final Future<?> on = ((Future<?>)event.value);
+            exception = _callOnGet(exception, on);
+        }
+        return exception;
+    }
+
+    protected Exception _onTimedGet(final Event[] events, final int length, final long end, Exception exception) throws Exception {
+        for (int i = 0; i < length; ++i) {
+            final Event event = events[i];
+            if (event.event != ON_GET) {
+                continue;
             }
+            @SuppressWarnings("unchecked")
+            final Future<?> on = ((Future<?>)event.value);
+            exception = _callOnTimedGet(exception, on, end);
         }
         return exception;
     }
